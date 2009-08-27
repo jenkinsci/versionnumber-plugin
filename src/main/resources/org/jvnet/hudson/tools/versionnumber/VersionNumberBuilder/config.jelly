@@ -1,0 +1,20 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:entry title="Environment Variable Name" help="${rootURL}/plugin/version_number/help-projectConfig.html">
+    <f:textbox field="environmentVariableName" />
+  </f:entry>
+  <f:entry title="Version Number Format String" help="${rootURL}/plugin/version_number/help-projectConfig.html">
+    <f:textbox field="versionNumberString" />
+  </f:entry>
+  <f:entry title="Project Start Date" help="${rootURL}/plugin/version_number/help-projectConfig.html">
+    <f:textbox field="projectStartDate" />
+  </f:entry>
+  <f:entry title="Number of builds today">
+    <f:textbox field="buildsToday" />
+  </f:entry>
+  <f:entry title="Number of builds this month">
+    <f:textbox field="buildsThisMonth" />
+  </f:entry>
+  <f:entry title="Number of builds this year">
+    <f:textbox field="buildsThisYear" />
+  </f:entry>
+</j:jelly>
