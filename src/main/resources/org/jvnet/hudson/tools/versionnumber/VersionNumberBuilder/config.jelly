@@ -17,4 +17,7 @@
   <f:entry title="Number of builds this year">
     <f:textbox field="buildsThisYear" />
   </f:entry>
+  <f:entry title="Number of builds since the start of the project">
+    <f:textbox field="buildsAllTime" />
+  </f:entry>
 </j:jelly>

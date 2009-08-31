@@ -4,9 +4,11 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.util.FormValidation;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
 import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.model.Result;
+import hudson.model.Run;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.tasks.Builder;
@@ -30,15 +32,17 @@ import javax.servlet.http.HttpServletRequest;
  * Sample {@link Builder}.
  *
  * <p>
- * The version number is a format string 
- * <li>
- * <ul><b>BUILD_ID</b>: the number of the build</ul>
- * <ul><b>MONTHS_SINCE_START</b>: relying on the project start date, provides
- * the number of months since the start of the project</ul>
- * <ul><b>BUILDS_TODAY</b>: the number of builds today, including this one.</ul>
- * <ul><b>BUILDS_THIS_MONTH</b>: the number of builds this month.</ul>
- * <ul><b>BUILDS_THIS_YEAR</b>: the number of builds this year.</ul>
+ * This build wrapper makes an environment variable with a version number available
+ * to the build.  For more information on how the format stream works, see the Version
+ * Number Plugin wiki page.
+ * </p>
  * <p>
+ * This plugin keeps track of its version through a {@link VersionNumberAction} attached
+ * to the project.  Each build that uses this plugin has its own VersionNumberAction,
+ * and this contains the builds today/this month/ this year/ all time.  When incrementing
+ * each of these values, unless they're overridden in the configuration the value from
+ * the previous build will be used.
+ * </p>
  *
  * @author Carl Lischeske - NETFLIX
  */
@@ -50,45 +54,60 @@ public class VersionNumberBuilder extends BuildWrapper {
 	private final Date projectStartDate;
 	private final String environmentVariableName;
 	
-	private int buildsToday;
-	private int buildsThisMonth;
-	private int buildsThisYear;
+	private int oBuildsToday;
+	private int oBuildsThisMonth;
+	private int oBuildsThisYear;
+	private int oBuildsAllTime;
 	
-    @DataBoundConstructor
+	@DataBoundConstructor
     public VersionNumberBuilder(String versionNumberString,
     		String projectStartDate,
     		String environmentVariableName,
     		String buildsToday,
     		String buildsThisMonth,
-    		String buildsThisYear) {
+    		String buildsThisYear,
+    		String buildsAllTime) {
         this.versionNumberString = versionNumberString;
         this.projectStartDate = parseDate(projectStartDate);
         this.environmentVariableName = environmentVariableName;
-
+        
         try {
-        	this.buildsToday = Integer.parseInt(buildsToday);
-        } catch (NumberFormatException nfe) {
+        	oBuildsToday = Integer.parseInt(buildsToday);
+        } catch (Exception e) {
+        	oBuildsToday = -1;
         }
         try {
-        	this.buildsThisMonth = Integer.parseInt(buildsThisMonth);
-        } catch (NumberFormatException nfe) {
+        	oBuildsThisMonth = Integer.parseInt(buildsThisMonth);
+        } catch (Exception e) {
+        	oBuildsThisMonth = -1;
         }
         try {
-        	this.buildsThisYear = Integer.parseInt(buildsThisYear);
-        } catch (NumberFormatException nfe) {
+        	oBuildsThisYear = Integer.parseInt(buildsThisYear);
+        } catch (Exception e) {
+        	oBuildsThisYear = -1;
         }
+        try {
+        	oBuildsAllTime = Integer.parseInt(buildsAllTime);
+        } catch (Exception e) {
+        	oBuildsAllTime = -1;
+        }
+        
     }
     
-    public int getBuildsToday() {
-    	return buildsToday;
+    public String getBuildsToday() {
+    	return "";
     }
     
-    public int getBuildsThisMonth() {
-    	return buildsThisMonth;
+    public String getBuildsThisMonth() {
+    	return "";
     }
     
-    public int getBuildsThisYear() {
-    	return buildsThisYear;
+    public String getBuildsThisYear() {
+    	return "";
+    }
+    
+    public String getBuildsAllTime() {
+    	return "";
     }
     
     private static Date parseDate(String dateString) {
@@ -114,47 +133,95 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     @SuppressWarnings("unchecked")
-    private void incBuild(Build build, PrintStream log) {
-    	// get the values set in the previous build
-    	Calendar curCal = build.getTimestamp();
-    	Calendar todayCal = build.getPreviousBuild().getTimestamp();
-    	
-    	// increment builds per day
-    	if (
-    			curCal.get(Calendar.DAY_OF_MONTH) == todayCal.get(Calendar.DAY_OF_MONTH)
-    			&& curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
-    			&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
-    		) {
-    		buildsToday++;
-    	} else {
-    		buildsToday = 1;
-    	}
+    private VersionNumberBuildInfo incBuild(Build build, PrintStream log) throws IOException {
+    	Run prevBuild = build.getPreviousBuild();
+    	int buildsToday = 1;
+    	int buildsThisMonth = 1;
+    	int buildsThisYear = 1;
+    	int buildsAllTime = 1;
+    	if (prevBuild != null)
+    	{
+    		// get the current build date and the previous build date
+    		Calendar curCal = build.getTimestamp();
+    		Calendar todayCal = prevBuild.getTimestamp();
     		
-    	// increment builds per month
-    	if (
-    			curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
-    			&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
-    		) {
-    		buildsThisMonth++;
-    	} else {
-    		buildsThisMonth = 1;
+    		// get the previous build version number information
+    		VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
+    		if (prevAction != null)
+    		{
+    			VersionNumberBuildInfo info = prevAction.getInfo();
+    			
+    	    	// increment builds per day
+    	    	if (
+    	    			curCal.get(Calendar.DAY_OF_MONTH) == todayCal.get(Calendar.DAY_OF_MONTH)
+    	    			&& curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
+    	    			&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
+    	    		) {
+    	    		buildsToday = info.getBuildsToday() + 1;
+    	    	} else {
+    	    		buildsToday = 1;
+    	    	}
+    	    		
+    	    	// increment builds per month
+    	    	if (
+    	    			curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
+    	    			&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
+    	    		) {
+    	    		buildsThisMonth = info.getBuildsThisMonth() + 1;
+    	    	} else {
+    	    		buildsThisMonth = 1;
+    	    	}
+    	    	
+    	    	// increment builds per year
+    	    	if (
+    	    			curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
+    	    		) {
+    	    		buildsThisYear = info.getBuildsThisYear() + 1;
+    	    	} else {
+    	    		buildsThisYear = 1;
+    	    	}
+    	    	
+    	    	// increment total builds
+    	    	buildsAllTime = info.getBuildsAllTime() + 1;
+    		}
     	}
-    	
-    	// increment builds per year
-    	if (
-    			curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
-    		) {
-    		buildsThisYear++;
-    	} else {
-    		buildsThisYear = 1;
+    	// have we overridden any of the version number info?  If so, set it up here
+    	boolean saveOverrides = false;
+    	if (this.oBuildsToday >= 0)
+    	{
+    		buildsToday = oBuildsToday;
+    		oBuildsToday = -1;
+    		saveOverrides = true;
     	}
+    	if (this.oBuildsThisMonth >= 0)
+    	{
+    		buildsThisMonth = oBuildsThisMonth;
+    		oBuildsThisMonth = -1;
+    		saveOverrides = true;
+    	}
+    	if (this.oBuildsThisYear >= 0)
+    	{
+    		buildsThisYear = oBuildsThisYear;
+    		oBuildsThisYear = -1;
+    		saveOverrides = true;
+    	}
+    	if (this.oBuildsAllTime >= 0)
+    	{
+    		buildsAllTime = oBuildsAllTime;
+    		oBuildsAllTime = -1;
+    		saveOverrides = true;
+    	}
+    	// if we've used any of the overrides, reset them in the project
+    	if (saveOverrides)
+    	{
+    		build.getProject().save();
+    	}
+    	return new VersionNumberBuildInfo(buildsToday, buildsThisMonth, buildsThisYear, buildsAllTime);
     }
     
     private static String formatVersionNumber(String versionNumberFormatString,
     		Date projectStartDate,
-    		int buildsToday,
-    		int buildsThisMonth,
-    		int buildsThisYear,
+    		VersionNumberBuildInfo info,
     		Map<String, String> enVars,
     		Calendar buildDate,
     		PrintStream log) {
@@ -203,11 +270,11 @@ public class VersionNumberBuilder extends BuildWrapper {
     			} else if ("BUILD_YEAR".equals(expressionKey)) {
     				replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.YEAR)), argumentString.length());
     			} else if ("BUILDS_TODAY".equals(expressionKey)) {
-    				replaceValue = sizeTo(Integer.toString(buildsToday), argumentString.length());
+    				replaceValue = sizeTo(Integer.toString(info.getBuildsToday()), argumentString.length());
     			} else if ("BUILDS_THIS_MONTH".equals(expressionKey)) {
-    				replaceValue = sizeTo(Integer.toString(buildsThisMonth), argumentString.length());
+    				replaceValue = sizeTo(Integer.toString(info.getBuildsThisMonth()), argumentString.length());
     			} else if ("BUILDS_THIS_YEAR".equals(expressionKey)) {
-    				replaceValue = sizeTo(Integer.toString(buildsThisYear), argumentString.length());
+    				replaceValue = sizeTo(Integer.toString(info.getBuildsThisYear()), argumentString.length());
     			} else if ("MONTHS_SINCE_PROJECT_START".equals(expressionKey)) {
     				Calendar projectStartCal = Calendar.getInstance();
     				projectStartCal.setTime(projectStartDate);
@@ -245,29 +312,27 @@ public class VersionNumberBuilder extends BuildWrapper {
     @SuppressWarnings("unchecked")
 	public Environment setUp(Build build, Launcher launcher, BuildListener listener) {
     	String formattedVersionNumber = "";
-    	incBuild(build, listener.getLogger());
-    	// we need to save here to persist the build increment we've just done
     	try {
-    		build.getProject().save();
-    	} catch (IOException ioe) {
-    		build.setResult(Result.FAILURE);
-    	}
-    	try {
+    		VersionNumberBuildInfo info = incBuild(build, listener.getLogger());
+    		build.addAction(new VersionNumberAction(info));
 			formattedVersionNumber = formatVersionNumber(this.versionNumberString,
 					this.projectStartDate,
-					buildsToday,
-					buildsThisMonth,
-					buildsThisYear,
+					info,
 					build.getEnvironment(),
 					build.getTimestamp(),
 					listener.getLogger()
 					);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			listener.error(e.toString());
+			build.setResult(Result.FAILURE);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			listener.error(e.toString());
+			build.setResult(Result.FAILURE);
+		} catch (Exception e) {
+			listener.error(e.toString());
+			build.setResult(Result.FAILURE);
 		}
 		final String finalVersionNumber = formattedVersionNumber;
         return new Environment() {
