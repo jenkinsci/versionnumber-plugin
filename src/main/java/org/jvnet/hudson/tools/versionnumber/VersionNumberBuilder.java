@@ -275,6 +275,8 @@ public class VersionNumberBuilder extends BuildWrapper {
     				replaceValue = sizeTo(Integer.toString(info.getBuildsThisMonth()), argumentString.length());
     			} else if ("BUILDS_THIS_YEAR".equals(expressionKey)) {
     				replaceValue = sizeTo(Integer.toString(info.getBuildsThisYear()), argumentString.length());
+    			} else if ("BUILDS_ALL_TIME".equals(expressionKey)) {
+    				replaceValue = sizeTo(Integer.toString(info.getBuildsAllTime()), argumentString.length());
     			} else if ("MONTHS_SINCE_PROJECT_START".equals(expressionKey)) {
     				Calendar projectStartCal = Calendar.getInstance();
     				projectStartCal.setTime(projectStartDate);
