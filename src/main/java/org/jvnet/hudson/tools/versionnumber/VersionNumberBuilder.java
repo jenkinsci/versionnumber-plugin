@@ -227,8 +227,6 @@ public class VersionNumberBuilder extends BuildWrapper {
     		PrintStream log) {
     	String vnf = new String(versionNumberFormatString);
     	
-    	log.println("formatting " + vnf + ":");
-    	
     	int expressionStart = 0;
     	do {
     		expressionStart = vnf.indexOf("${");
@@ -246,8 +244,6 @@ public class VersionNumberBuilder extends BuildWrapper {
     			}
     			String expressionKey = vnf.substring(expressionStart + 2, expressionEnd);
     			String argumentString = argumentEnd > 0 ? vnf.substring(argumentStart + 1, argumentEnd).trim() : "";
-    			log.println("Found key: " + expressionKey);
-    			log.println("Found argument: " + argumentString);
     			String replaceValue = "";
     			
     			// we have the expression key; if it's any known key, fill in the value
@@ -358,7 +354,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     @Extension
     public static final class DescriptorImpl extends BuildWrapperDescriptor {
 
-        public DescriptorImpl() {
+		public DescriptorImpl() {
             super(VersionNumberBuilder.class);
             load();
         }
