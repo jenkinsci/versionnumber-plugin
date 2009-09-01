@@ -4,7 +4,7 @@
   <groupId>org.jvnet.hudson.tools</groupId>
   <artifactId>versionnumber</artifactId>
   <packaging>hpi</packaging>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.1</version>
   <url>http://wiki.hudson-ci.org/display/HUDSON/Version+Number+Plugin</url>
   
   <properties>
@@ -112,8 +112,8 @@
   </pluginRepositories>
 
   <scm>
-    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/versionnumber-1.0</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/versionnumber-1.0</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/versionnumber/tags/versionnumber-1.0</url>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/versionnumber-1.1</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/versionnumber-1.1</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/hudson/plugins/versionnumber/tags/versionnumber-1.1</url>
   </scm>
 </project>
