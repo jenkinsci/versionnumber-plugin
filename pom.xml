@@ -51,6 +51,13 @@
       </plugin>
     </plugins>
   </build>
+  
+<parent>
+<groupId>org.jvnet.hudson.plugins</groupId>
+<artifactId>plugin</artifactId>
+<version>1.300</version>
+<relativePath>../pom.xml</relativePath>
+</parent>
 
   <!--
     Get everything from http://maven.glassfish.org/content/groups/public/ ,
