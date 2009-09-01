@@ -3,10 +3,14 @@ package org.jvnet.hudson.tools.versionnumber;
 import hudson.model.Action;
 
 public class VersionNumberAction implements Action {
-	private VersionNumberBuildInfo info;
+	static final String ICON = "/plugin/versionnumber/vnicon_24x24.gif";
 	
-	public VersionNumberAction(VersionNumberBuildInfo info) {
+	private VersionNumberBuildInfo info;
+	private String versionNumber;
+
+	public VersionNumberAction(VersionNumberBuildInfo info, String versionNumber) {
 		this.info = info;
+		this.versionNumber = versionNumber;
 	}
 	
 	public VersionNumberBuildInfo getInfo() {
@@ -14,15 +18,15 @@ public class VersionNumberAction implements Action {
 	}
 
 	public String getDisplayName() {
-		return "Version Number";
+		return "Version " + this.versionNumber;
 	}
 
 	public String getIconFileName() {
-		return null;
+		return ICON;
 	}
 
 	public String getUrlName() {
-		return null;
+		return "versionnumber/displayName";
 	}
 
 	

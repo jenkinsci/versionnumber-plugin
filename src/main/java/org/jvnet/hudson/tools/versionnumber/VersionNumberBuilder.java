@@ -312,7 +312,6 @@ public class VersionNumberBuilder extends BuildWrapper {
     	String formattedVersionNumber = "";
     	try {
     		VersionNumberBuildInfo info = incBuild(build, listener.getLogger());
-    		build.addAction(new VersionNumberAction(info));
 			formattedVersionNumber = formatVersionNumber(this.versionNumberString,
 					this.projectStartDate,
 					info,
@@ -320,6 +319,7 @@ public class VersionNumberBuilder extends BuildWrapper {
 					build.getTimestamp(),
 					listener.getLogger()
 					);
+    		build.addAction(new VersionNumberAction(info, formattedVersionNumber));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			listener.error(e.toString());

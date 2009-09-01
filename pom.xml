@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   
   <groupId>org.jvnet.hudson.tools</groupId>
-  <artifactId>version_number</artifactId>
+  <artifactId>versionnumber</artifactId>
   <packaging>hpi</packaging>
   <version>1.0-SNAPSHOT</version>
   <url>http://wiki.hudson-ci.org/display/HUDSON/Version+Number+Plugin</url>
