@@ -227,22 +227,30 @@ public class VersionNumberBuilder extends BuildWrapper {
     		PrintStream log) {
     	String vnf = new String(versionNumberFormatString);
     	
-    	int expressionStart = 0;
+    	int blockStart = 0;
     	do {
-    		expressionStart = vnf.indexOf("${");
-    		if (expressionStart > 0) {
-    			int expressionEnd = vnf.indexOf("}", expressionStart);
-    			int argumentStart = vnf.indexOf(",", expressionStart);
+    		// blockStart and blockEnd define the starting and ending positions of the entire block, including
+    		// the ${}
+    		blockStart = vnf.indexOf("${");
+    		if (blockStart >= 0) {
+    			int blockEnd = vnf.indexOf("}", blockStart) + 1;
+    			// if this is an unclosed block...
+    			if (blockEnd <= blockStart)
+    			{
+    				// include everything up to the unclosed block, then exit
+    				vnf = vnf.substring(0, blockStart);
+    				break;
+    			}
+    			// command start/end include only the actual name of the variable to be replaced
+    			int commandStart = blockStart + 2;
+    			int commandEnd = blockEnd - 1;
+    			int argumentStart = vnf.indexOf(",", blockStart);
     			int argumentEnd = 0;
-    			if (argumentStart > 0 && argumentStart < expressionEnd) {
-        			argumentEnd = expressionEnd;
-    				expressionEnd = argumentStart;
+    			if (argumentStart > 0 && argumentStart < blockEnd) {
+        			argumentEnd = blockEnd - 1;
+    				commandEnd = argumentStart;
     			}
-    			if (expressionEnd < expressionStart) {
-    				vnf = vnf.substring(0, expressionStart);
-    				continue;
-    			}
-    			String expressionKey = vnf.substring(expressionStart + 2, expressionEnd);
+    			String expressionKey = vnf.substring(commandStart, commandEnd);
     			String argumentString = argumentEnd > 0 ? vnf.substring(argumentStart + 1, argumentEnd).trim() : "";
     			String replaceValue = "";
     			
@@ -293,9 +301,9 @@ public class VersionNumberBuilder extends BuildWrapper {
 	    				}
 	    			}
     			}
-				vnf = vnf.replace("${" + expressionKey + "}", replaceValue);
+				vnf = vnf.substring(0, blockStart) + replaceValue + vnf.substring(blockEnd, vnf.length());
     		}
-    	} while (expressionStart > 0);
+    	} while (blockStart >= 0);
     	
     	return vnf;
     }

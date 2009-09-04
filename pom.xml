@@ -5,6 +5,7 @@
   <artifactId>versionnumber</artifactId>
   <packaging>hpi</packaging>
   <version>1.1-SNAPSHOT</version>
+  <name>Version Number Plug-In</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/Version+Number+Plugin</url>
   
   <properties>
