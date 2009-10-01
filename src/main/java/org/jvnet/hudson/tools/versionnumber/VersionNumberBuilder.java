@@ -59,6 +59,8 @@ public class VersionNumberBuilder extends BuildWrapper {
 	private int oBuildsThisYear;
 	private int oBuildsAllTime;
 	
+	private boolean skipFailedBuilds;
+	
 	@DataBoundConstructor
     public VersionNumberBuilder(String versionNumberString,
     		String projectStartDate,
@@ -66,10 +68,12 @@ public class VersionNumberBuilder extends BuildWrapper {
     		String buildsToday,
     		String buildsThisMonth,
     		String buildsThisYear,
-    		String buildsAllTime) {
+    		String buildsAllTime,
+    		boolean skipFailedBuilds) {
         this.versionNumberString = versionNumberString;
         this.projectStartDate = parseDate(projectStartDate);
         this.environmentVariableName = environmentVariableName;
+        this.skipFailedBuilds = skipFailedBuilds;
         
         try {
         	oBuildsToday = Integer.parseInt(buildsToday);
@@ -110,6 +114,10 @@ public class VersionNumberBuilder extends BuildWrapper {
     	return "";
     }
     
+    public boolean getSkipFailedBuilds() {
+    	return this.skipFailedBuilds;
+    }
+    
     private static Date parseDate(String dateString) {
     	try {
     		return defaultDateFormat.parse(dateString);
@@ -139,6 +147,14 @@ public class VersionNumberBuilder extends BuildWrapper {
     	int buildsThisMonth = 1;
     	int buildsThisYear = 1;
     	int buildsAllTime = 1;
+    	// this is what we add to the previous version number to get builds today/this month/ this year/all time
+    	int buildInc = 1;
+    	
+    	// if we're skipping version numbers on failed builds and the last build failed...
+    	if (skipFailedBuilds && !prevBuild.getResult().equals(Result.SUCCESS)) {
+    		// don't increment
+    		buildInc = 0;
+    	}
     	if (prevBuild != null)
     	{
     		// get the current build date and the previous build date
@@ -157,7 +173,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     	    			&& curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
     	    			&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
     	    		) {
-    	    		buildsToday = info.getBuildsToday() + 1;
+    	    		buildsToday = info.getBuildsToday() + buildInc;
     	    	} else {
     	    		buildsToday = 1;
     	    	}
@@ -167,7 +183,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     	    			curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
     	    			&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
     	    		) {
-    	    		buildsThisMonth = info.getBuildsThisMonth() + 1;
+    	    		buildsThisMonth = info.getBuildsThisMonth() + buildInc;
     	    	} else {
     	    		buildsThisMonth = 1;
     	    	}
@@ -176,13 +192,13 @@ public class VersionNumberBuilder extends BuildWrapper {
     	    	if (
     	    			curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
     	    		) {
-    	    		buildsThisYear = info.getBuildsThisYear() + 1;
+    	    		buildsThisYear = info.getBuildsThisYear() + buildInc;
     	    	} else {
     	    		buildsThisYear = 1;
     	    	}
     	    	
     	    	// increment total builds
-    	    	buildsAllTime = info.getBuildsAllTime() + 1;
+    	    	buildsAllTime = info.getBuildsAllTime() + buildInc;
     		}
     	}
     	// have we overridden any of the version number info?  If so, set it up here
@@ -281,6 +297,14 @@ public class VersionNumberBuilder extends BuildWrapper {
     				replaceValue = sizeTo(Integer.toString(info.getBuildsThisYear()), argumentString.length());
     			} else if ("BUILDS_ALL_TIME".equals(expressionKey)) {
     				replaceValue = sizeTo(Integer.toString(info.getBuildsAllTime()), argumentString.length());
+    			} else if ("BUILDS_TODAY_Z".equals(expressionKey)) {
+    				replaceValue = sizeTo(Integer.toString(info.getBuildsToday() - 1), argumentString.length());
+    			} else if ("BUILDS_THIS_MONTH_Z".equals(expressionKey)) {
+    				replaceValue = sizeTo(Integer.toString(info.getBuildsThisMonth() - 1), argumentString.length());
+    			} else if ("BUILDS_THIS_YEAR_Z".equals(expressionKey)) {
+    				replaceValue = sizeTo(Integer.toString(info.getBuildsThisYear() - 1), argumentString.length());
+    			} else if ("BUILDS_ALL_TIME_Z".equals(expressionKey)) {
+    				replaceValue = sizeTo(Integer.toString(info.getBuildsAllTime() - 1), argumentString.length());
     			} else if ("MONTHS_SINCE_PROJECT_START".equals(expressionKey)) {
     				Calendar projectStartCal = Calendar.getInstance();
     				projectStartCal.setTime(projectStartDate);

@@ -5,6 +5,10 @@
   <f:entry title="Version Number Format String" help="/plugin/versionnumber/help-versionNumberFormatString.html">
     <f:textbox field="versionNumberString" />
   </f:entry>
+  <f:entry title="Failed Builds" help="/plugin/versionnumber/help-reuseVersionNumbers.html">
+    <f:checkbox name="skipFailedBuilds" checked="${instance.skipFailedBuilds}" />
+    	Don't increment builds today/ this month/ this year/ all time after a failed build.
+  </f:entry>
   <f:entry title="Project Start Date" help="/plugin/versionnumber/help-projectStartDate.html">
     <f:textbox field="projectStartDate" />
   </f:entry>
