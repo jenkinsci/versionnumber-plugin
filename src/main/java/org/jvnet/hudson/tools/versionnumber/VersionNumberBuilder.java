@@ -3,9 +3,8 @@ package org.jvnet.hudson.tools.versionnumber;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.util.FormValidation;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -25,8 +24,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * Sample {@link Builder}.
@@ -141,7 +138,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     @SuppressWarnings("unchecked")
-    private VersionNumberBuildInfo incBuild(Build build, PrintStream log) throws IOException {
+    private VersionNumberBuildInfo incBuild(AbstractBuild build, PrintStream log) throws IOException {
     	Run prevBuild = build.getPreviousBuild();
     	int buildsToday = 1;
     	int buildsThisMonth = 1;
@@ -339,15 +336,15 @@ public class VersionNumberBuilder extends BuildWrapper {
 		return s;
 	}
     	
-    @SuppressWarnings("unchecked")
-	public Environment setUp(Build build, Launcher launcher, BuildListener listener) {
+    @SuppressWarnings("unchecked") @Override
+	public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) {
     	String formattedVersionNumber = "";
     	try {
     		VersionNumberBuildInfo info = incBuild(build, listener.getLogger());
 			formattedVersionNumber = formatVersionNumber(this.versionNumberString,
 					this.projectStartDate,
 					info,
-					build.getEnvironment(),
+					build.getEnvironment(listener),
 					build.getTimestamp(),
 					listener.getLogger()
 					);
@@ -443,6 +440,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             return "Create a formatted version number";
         }
 
+        @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             return super.configure(req, json);
         }
