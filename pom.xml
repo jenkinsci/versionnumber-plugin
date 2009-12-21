@@ -11,7 +11,25 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.318</version>
+    <version>1.338</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
+
+  <licenses>
+    <license>
+      <name>MIT license</name>
+      <comments>All source code is under the MIT license.</comments>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>abayer</id>
+      <name>Andrew Bayer</name>
+      <email>andrew.bayer@gmail.com</email>
+      <timezone>-8</timezone>
+    </developer>
+  </developers>
+
+  
 </project>
