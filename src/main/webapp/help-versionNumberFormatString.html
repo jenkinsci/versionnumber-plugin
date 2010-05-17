@@ -1,0 +1,107 @@
+<div>
+	<p>
+		The version number format string is used to generate the version number.  It will be passed through unaltered,
+		except that any expression of the form ${variable_name, argument} will be replaced according to the table below.
+		Arguments are option, and unless specified below, the argument is a string of length N, and the
+		number will be padded with zeros until it's length N or greater.  For example, if the build day is 5, then
+		${BUILD_DAY, XX} would return 05.
+	</p>
+	<p>
+		Any variable not recognized in the table below will be replaced by an environment variable of the same name.
+		So to use the hudson build ID, stored in the environment variable BUILD_ID, you'd just use ${BUILD_ID}.
+		If no environment variable of the appropriate name can be found, the expression will just be replaced with
+		an empty string.
+	</p>
+	<p>
+		
+		<table>
+			<tr>
+			    <td>
+			    BUILD_DATE_FORMATTED
+			    </td>
+			    <td>
+			    If the argument for this is a quotes-enclosed java date format string, then this will be replaced with
+			    the build date formatted with that string.  If there is no argument, then this will be the standard simple
+			    date format.
+			    </td>
+			</tr>
+			<tr>
+				<td>
+					BUILD_DAY
+				</td>
+				<td>
+					The day of the build.
+				</td>
+			</tr>
+			<tr>
+				<td>
+					BUILD_MONTH
+				</td>
+				<td>
+					The month of the build.
+				</td>
+			</tr>
+			<tr>
+				<td>
+					BUILD_YEAR
+				</td>
+				<td>
+					The year of the build.
+				</td>
+			</tr>
+			<tr>
+				<td>
+					BUILDS_TODAY
+				</td>
+				<td>
+					The number of builds done on this calendar date.
+				</td>
+			</tr>
+			<tr>
+				<td>
+					BUILDS_THIS_MONTH
+				</td>
+				<td>
+					The number of builds done in this calendar month.
+				</td>
+			</tr>
+			<tr>
+				<td>
+					BUILDS_THIS_YEAR
+				</td>
+				<td>
+					The number of builds done in this calendar year.
+				</td>
+			</tr>
+			<tr>
+				<td>
+					BUILDS_ALL_TIME
+				</td>
+				<td>
+					The number of builds done since the beginning of the project.
+				</td>
+			</tr>
+			<tr>
+				<td>
+					MONTHS_SINCE_PROJECT_START
+				</td>
+				<td>
+					The number of calendar months that have elapsed since the project start date.
+				</td>
+			</tr>
+			<tr>
+				<td>
+					YEARS_SINCE_PROJECT_START
+				</td>
+				<td>
+					The number of calendar years that have elapsed since the project start date.
+				</td>
+			</tr>
+		</table>
+	</p>
+	<p>
+		Note: BUILDS_TODAY_Z, BUILDS_THIS_MONTH_Z, BUILDS_THIS_YEAR_Z and BUILDS_ALL_TIME_Z are zero-indexed
+		versions of the same variables above.  The override build numbers are NOT zero indexed, however, so if
+		you override Builds Today with 3, then BUILDS_TODAY_Z will be 2 for the next build.
+	</p>
+</div>

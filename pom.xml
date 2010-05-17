@@ -1,0 +1,33 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>org.jvnet.hudson.tools</groupId>
+  <artifactId>versionnumber</artifactId>
+  <packaging>hpi</packaging>
+  <version>1.4-SNAPSHOT</version>
+  <name>Version Number Plug-In</name>
+  <url>http://wiki.hudson-ci.org/display/HUDSON/Version+Number+Plugin</url>
+  
+  <parent>
+    <groupId>org.jvnet.hudson.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>1.324</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <licenses>
+    <license>
+      <name>MIT license</name>
+      <comments>All source code is under the MIT license.</comments>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>abayer</id>
+      <name>Andrew Bayer</name>
+      <email>andrew.bayer@gmail.com</email>
+      <timezone>-8</timezone>
+    </developer>
+  </developers>
+</project>

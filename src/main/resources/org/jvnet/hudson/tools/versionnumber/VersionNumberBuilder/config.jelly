@@ -1,0 +1,27 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:entry title="Environment Variable Name" help="/plugin/versionnumber/help-environmentVariableName.html">
+    <f:textbox field="environmentVariableName" />
+  </f:entry>
+  <f:entry title="Version Number Format String" help="/plugin/versionnumber/help-versionNumberFormatString.html">
+    <f:textbox field="versionNumberString" />
+  </f:entry>
+  <f:entry title="Failed Builds" help="/plugin/versionnumber/help-reuseVersionNumbers.html">
+    <f:checkbox name="skipFailedBuilds" checked="${instance.skipFailedBuilds}" />
+    	Don't increment builds today/ this month/ this year/ all time after a failed build.
+  </f:entry>
+  <f:entry title="Project Start Date" help="/plugin/versionnumber/help-projectStartDate.html">
+    <f:textbox field="projectStartDate" />
+  </f:entry>
+  <f:entry title="Number of builds today" help="/plugin/versionnumber/help-overrideNumbers.html">
+    <f:textbox field="buildsToday" />
+  </f:entry>
+  <f:entry title="Number of builds this month" help="/plugin/versionnumber/help-overrideNumbers.html">
+    <f:textbox field="buildsThisMonth" />
+  </f:entry>
+  <f:entry title="Number of builds this year" help="/plugin/versionnumber/help-overrideNumbers.html">
+    <f:textbox field="buildsThisYear" />
+  </f:entry>
+  <f:entry title="Number of builds since the start of the project" help="/plugin/versionnumber/help-overrideNumbers.html">
+    <f:textbox field="buildsAllTime" />
+  </f:entry>
+</j:jelly>
