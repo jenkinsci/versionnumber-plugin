@@ -147,12 +147,12 @@ public class VersionNumberBuilder extends BuildWrapper {
     	// this is what we add to the previous version number to get builds today/this month/ this year/all time
     	int buildInc = 1;
     	
-    	// if we're skipping version numbers on failed builds and the last build failed...
-    	if (skipFailedBuilds && !prevBuild.getResult().equals(Result.SUCCESS)) {
-            // don't increment
-            buildInc = 0;
-    	}
     	if (prevBuild != null) {
+    	    // if we're skipping version numbers on failed builds and the last build failed...
+    	    if (skipFailedBuilds && !prevBuild.getResult().equals(Result.SUCCESS)) {
+                // don't increment
+                buildInc = 0;
+    	    }
             // get the current build date and the previous build date
             Calendar curCal = build.getTimestamp();
             Calendar todayCal = prevBuild.getTimestamp();
