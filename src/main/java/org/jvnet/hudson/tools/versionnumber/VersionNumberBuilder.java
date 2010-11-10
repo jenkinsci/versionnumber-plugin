@@ -2,20 +2,15 @@ package org.jvnet.hudson.tools.versionnumber;
 
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.util.FormValidation;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.Result;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.tasks.Builder;
-import net.sf.json.JSONObject;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import hudson.util.FormValidation;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -24,6 +19,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
+
+import net.sf.json.JSONObject;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Sample {@link Builder}.
@@ -137,9 +138,22 @@ public class VersionNumberBuilder extends BuildWrapper {
     	return this.environmentVariableName;
     }
     
+    private Run getPreviousBuildWithVersionNumber(AbstractBuild build) {
+    	// a build that fails early will not have a VersionNumberAction attached
+    	Run prevBuild = build.getPreviousBuild();
+    	while (prevBuild != null) {
+    		VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
+    		if (prevAction != null) {
+    			return prevBuild;
+    		}
+    		prevBuild = prevBuild.getPreviousBuild();
+    	}
+    	return null;
+    }
+    
     @SuppressWarnings("unchecked")
     private VersionNumberBuildInfo incBuild(AbstractBuild build, PrintStream log) throws IOException {
-    	Run prevBuild = build.getPreviousBuild();
+    	Run prevBuild = getPreviousBuildWithVersionNumber(build);
     	int buildsToday = 1;
     	int buildsThisMonth = 1;
     	int buildsThisYear = 1;
@@ -159,43 +173,37 @@ public class VersionNumberBuilder extends BuildWrapper {
             
             // get the previous build version number information
             VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
-            if (prevAction != null) {
-                VersionNumberBuildInfo info = prevAction.getInfo();
-    		
-                // increment builds per day
-    	    	if (
-                    curCal.get(Calendar.DAY_OF_MONTH) == todayCal.get(Calendar.DAY_OF_MONTH)
-                    && curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
-                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
-                    ) {
-                    buildsToday = info.getBuildsToday() + buildInc;
-    	    	} else {
-                    buildsToday = 1;
-    	    	}
-    	    	
-    	    	// increment builds per month
-    	    	if (
-                    curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
-                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
-                    ) {
-                    buildsThisMonth = info.getBuildsThisMonth() + buildInc;
-    	    	} else {
-                    buildsThisMonth = 1;
-    	    	}
-    	    	
-    	    	// increment builds per year
-    	    	if (
-                    curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)
-                    ) {
-                    buildsThisYear = info.getBuildsThisYear() + buildInc;
-    	    	} else {
-                    buildsThisYear = 1;
-    	    	}
-    	    	
-    	    	// increment total builds
-    	    	buildsAllTime = info.getBuildsAllTime() + buildInc;
-            }
-    	}
+			VersionNumberBuildInfo info = prevAction.getInfo();
+
+			// increment builds per day
+			if (curCal.get(Calendar.DAY_OF_MONTH) == todayCal
+					.get(Calendar.DAY_OF_MONTH)
+					&& curCal.get(Calendar.MONTH) == todayCal
+							.get(Calendar.MONTH)
+					&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
+				buildsToday = info.getBuildsToday() + buildInc;
+			} else {
+				buildsToday = 1;
+			}
+
+			// increment builds per month
+			if (curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
+					&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
+				buildsThisMonth = info.getBuildsThisMonth() + buildInc;
+			} else {
+				buildsThisMonth = 1;
+			}
+
+			// increment builds per year
+			if (curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
+				buildsThisYear = info.getBuildsThisYear() + buildInc;
+			} else {
+				buildsThisYear = 1;
+			}
+
+			// increment total builds
+			buildsAllTime = info.getBuildsAllTime() + buildInc;
+		}
     	// have we overridden any of the version number info?  If so, set it up here
     	boolean saveOverrides = false;
     	if (this.oBuildsToday >= 0) {
@@ -364,15 +372,16 @@ public class VersionNumberBuilder extends BuildWrapper {
     
     @Override
     public BuildWrapperDescriptor getDescriptor() {
-        // see Descriptor javadoc for more about what a descriptor is.
-        return (DescriptorImpl)super.getDescriptor();
+        return DESCRIPTOR;
     }
+    
+    @Extension
+	public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
     
     /**
      * Descriptor for {@link VersionNumberBuilder}. Used as a singleton.
      * The class is marked as public so that it can be accessed from views.
      */
-    @Extension
     public static final class DescriptorImpl extends BuildWrapperDescriptor {
         public DescriptorImpl() {
             super(VersionNumberBuilder.class);
