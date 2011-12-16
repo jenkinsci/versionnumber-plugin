@@ -58,6 +58,20 @@ public class VersionNumberBuilder extends BuildWrapper {
     private int oBuildsAllTime;
     
     private boolean skipFailedBuilds;
+    private boolean useAsBuildDisplayName; 
+    
+    public VersionNumberBuilder(String versionNumberString,
+            String projectStartDate,
+            String environmentVariableName,
+            String buildsToday,
+            String buildsThisMonth,
+            String buildsThisYear,
+            String buildsAllTime,
+            boolean skipFailedBuilds) {
+		this(versionNumberString, projectStartDate, environmentVariableName,
+				buildsToday, buildsThisMonth, buildsThisYear, buildsAllTime,
+				skipFailedBuilds, false);
+    }
     
     @DataBoundConstructor
     public VersionNumberBuilder(String versionNumberString,
@@ -67,11 +81,13 @@ public class VersionNumberBuilder extends BuildWrapper {
                                 String buildsThisMonth,
                                 String buildsThisYear,
                                 String buildsAllTime,
-                                boolean skipFailedBuilds) {
+                                boolean skipFailedBuilds,
+                                boolean useAsBuildDisplayName) {
         this.versionNumberString = versionNumberString;
         this.projectStartDate = parseDate(projectStartDate);
         this.environmentVariableName = environmentVariableName;
         this.skipFailedBuilds = skipFailedBuilds;
+        this.useAsBuildDisplayName = useAsBuildDisplayName;
         
         try {
             oBuildsToday = Integer.parseInt(buildsToday);
@@ -349,6 +365,9 @@ public class VersionNumberBuilder extends BuildWrapper {
                                                          listener.getLogger()
                                                          );
             build.addAction(new VersionNumberAction(info, formattedVersionNumber));
+            if (useAsBuildDisplayName) {
+            	build.setDisplayName(formattedVersionNumber);
+            }
         } catch (IOException e) {
             // TODO Auto-generated catch block
             listener.error(e.toString());

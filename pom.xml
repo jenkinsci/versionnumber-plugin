@@ -6,13 +6,13 @@
   <packaging>hpi</packaging>
   <version>1.4-SNAPSHOT</version>
   <name>Version Number Plug-In</name>
-  <url>http://wiki.hudson-ci.org/display/HUDSON/Version+Number+Plugin</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/Version+Number+Plugin</url>
   
   <parent>
-    <groupId>org.jvnet.hudson.plugins</groupId>
+    <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.357</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>1.404</version> <!-- which version of Jenkins is this plugin built 
+			against? -->
   </parent>
 
   <licenses>
@@ -28,6 +28,11 @@
       <name>Andrew Bayer</name>
       <email>andrew.bayer@gmail.com</email>
       <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <id>cchabanois</id>
+      <name>Cedric Chabanois</name>
+      <email>cchabanois@gmail.com</email>
     </developer>
   </developers>
 </project>
