@@ -132,6 +132,10 @@ public class VersionNumberBuilder extends BuildWrapper {
     	return this.skipFailedBuilds;
     }
     
+    public boolean getUseAsBuildDisplayName() {
+    	return this.useAsBuildDisplayName;
+    }
+    
     private static Date parseDate(String dateString) {
     	try {
             return defaultDateFormat.parse(dateString);
