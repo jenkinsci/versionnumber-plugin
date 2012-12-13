@@ -19,7 +19,7 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
 	public void testTwoBuilds() throws Exception {
 		FreeStyleProject job = createFreeStyleProject("versionNumberJob");
 		VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
-				"1.0.${BUILDS_ALL_TIME}", null, null, null, null, null, null, false);
+				"1.0.${BUILDS_ALL_TIME}", null, null, null, null, null, null, null, false);
 		job.getBuildWrappersList().add(versionNumberBuilder);
 		FreeStyleBuild build = buildAndAssertSuccess(job);
 		build = buildAndAssertSuccess(job);
@@ -30,7 +30,7 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
 	public void testFailureEarlyDoesNotResetVersionNumber() throws Exception {
 		FreeStyleProject job = createFreeStyleProject("versionNumberJob");
 		VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
-				"1.0.${BUILDS_ALL_TIME}", null, null, null, null, null, null, false);
+				"1.0.${BUILDS_ALL_TIME}", null, null, null, null, null, null, null, false);
 		job.getBuildWrappersList().add(versionNumberBuilder);
 		buildAndAssertSuccess(job);
 		buildAndAssertSuccess(job);
@@ -50,7 +50,7 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
 	public void testUseAsBuildDisplayName() throws Exception {
 		FreeStyleProject job = createFreeStyleProject("versionNumberJob");
 		VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
-				"1.0.${BUILDS_ALL_TIME}", null, null, null, null, null, null, false, true);
+				"1.0.${BUILDS_ALL_TIME}", null, null, null, null, null, null, null, false, true);
 		job.getBuildWrappersList().add(versionNumberBuilder);
 		FreeStyleBuild build = buildAndAssertSuccess(job);
 		assertEquals("1.0.1", build.getDisplayName());

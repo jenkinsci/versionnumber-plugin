@@ -16,11 +16,15 @@ public class VersionNumberAction implements Action {
     public VersionNumberBuildInfo getInfo() {
         return info;
     }
-    
+
+    public String getVersionNumber() {
+	return this.versionNumber;
+    }
+
     public String getDisplayName() {
         return "Version " + this.versionNumber;
     }
-    
+
     public String getIconFileName() {
         return ICON;
     }

@@ -1,6 +1,7 @@
 package org.jvnet.hudson.tools.versionnumber;
 
 import hudson.Extension;
+import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.Result;
@@ -19,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 
@@ -47,10 +49,10 @@ import org.kohsuke.stapler.StaplerRequest;
 public class VersionNumberBuilder extends BuildWrapper {
     
     private static final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    
     private final String versionNumberString;
     private final Date projectStartDate;
     private final String environmentVariableName;
+    private final String environmentPrefixVariable;
     
     private int oBuildsToday;
     private int oBuildsThisMonth;
@@ -63,20 +65,22 @@ public class VersionNumberBuilder extends BuildWrapper {
     public VersionNumberBuilder(String versionNumberString,
             String projectStartDate,
             String environmentVariableName,
+            String environmentPrefixVariable,
             String buildsToday,
             String buildsThisMonth,
             String buildsThisYear,
             String buildsAllTime,
             boolean skipFailedBuilds) {
 		this(versionNumberString, projectStartDate, environmentVariableName,
-				buildsToday, buildsThisMonth, buildsThisYear, buildsAllTime,
-				skipFailedBuilds, false);
+				environmentPrefixVariable, buildsToday, buildsThisMonth,
+				buildsThisYear, buildsAllTime, skipFailedBuilds, false);
     }
     
     @DataBoundConstructor
     public VersionNumberBuilder(String versionNumberString,
                                 String projectStartDate,
                                 String environmentVariableName,
+                                String environmentPrefixVariable,
                                 String buildsToday,
                                 String buildsThisMonth,
                                 String buildsThisYear,
@@ -86,6 +90,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         this.versionNumberString = versionNumberString;
         this.projectStartDate = parseDate(projectStartDate);
         this.environmentVariableName = environmentVariableName;
+        this.environmentPrefixVariable = environmentPrefixVariable;
         this.skipFailedBuilds = skipFailedBuilds;
         this.useAsBuildDisplayName = useAsBuildDisplayName;
         
@@ -157,18 +162,38 @@ public class VersionNumberBuilder extends BuildWrapper {
     public String getEnvironmentVariableName() {
     	return this.environmentVariableName;
     }
-    
+    public String getEnvironmentPrefixVariable() {
+        return this.environmentPrefixVariable;
+    }
     private Run getPreviousBuildWithVersionNumber(AbstractBuild build) {
     	// a build that fails early will not have a VersionNumberAction attached
     	Run prevBuild = build.getPreviousBuild();
     	while (prevBuild != null) {
     		VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
     		if (prevAction != null) {
-    			return prevBuild;
+			if (this.environmentPrefixVariable != null) {
+    				String version = prevAction.getVersionNumber();
+
+				try {
+					EnvVars env = build.getEnvironment(null);
+					String envPrefix = env.get(this.environmentPrefixVariable);
+
+					if (version.startsWith(envPrefix)) {
+						return prevBuild;
+					}
+
+				} catch (InterruptedException e) {
+					continue;
+				} catch (IOException e) {
+					continue;
+				}
+			} else {
+				return prevBuild;
+			}
     		}
     		prevBuild = prevBuild.getPreviousBuild();
     	}
-    	return null;
+	return prevBuild;
     }
     
     @SuppressWarnings("unchecked")
