@@ -328,6 +328,13 @@ public class VersionNumberBuilder extends BuildWrapper {
                     int monthsSinceStart = buildDate.get(Calendar.MONTH) - projectStartCal.get(Calendar.MONTH);
                     monthsSinceStart += (buildDate.get(Calendar.YEAR) - projectStartCal.get(Calendar.YEAR)) * 12;
                     replaceValue = sizeTo(Integer.toString(monthsSinceStart), argumentString.length());
+                }else if ("DAYS_SINCE_PROJECT_START".equals(expressionKey)) {
+                    Date today = Calendar.getInstance().getTime();
+					today.setHours(0);
+					today.setMinutes(0);
+					today.setSeconds(0);
+					int daysSinceStart = daysBetween(projectStartDate,today);
+                    replaceValue = sizeTo(Integer.toString(daysSinceStart), argumentString.length());
                 } else if ("YEARS_SINCE_PROJECT_START".equals(expressionKey)) {
                     Calendar projectStartCal = Calendar.getInstance();
                     projectStartCal.setTime(projectStartDate);
@@ -349,6 +356,10 @@ public class VersionNumberBuilder extends BuildWrapper {
     	return vnf;
     }
     
+	private static int daysBetween(Date d1, Date d2){
+		return (int)( (d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+	}
+	
     private static String sizeTo(String s, int length) {
         while (s.length() < length) {
             s = "0" + s;
