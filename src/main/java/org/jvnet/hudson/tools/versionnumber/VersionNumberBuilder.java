@@ -166,34 +166,44 @@ public class VersionNumberBuilder extends BuildWrapper {
         return this.environmentPrefixVariable;
     }
     private Run getPreviousBuildWithVersionNumber(AbstractBuild build) {
+    	String envPrefix;
+    	
+    	if (this.environmentPrefixVariable != null) {
+			try {
+				EnvVars env = build.getEnvironment(null);
+				
+				envPrefix = env.get(this.environmentPrefixVariable);
+			} catch (IOException e) {
+				envPrefix = null;
+			} catch (InterruptedException e) {
+				envPrefix = null;
+			}
+    	} else {
+    		envPrefix = null;
+    	}
+    	
     	// a build that fails early will not have a VersionNumberAction attached
     	Run prevBuild = build.getPreviousBuild();
+    	
     	while (prevBuild != null) {
     		VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
+    		
     		if (prevAction != null) {
-			if (this.environmentPrefixVariable != null) {
-    				String version = prevAction.getVersionNumber();
-
-				try {
-					EnvVars env = build.getEnvironment(null);
-					String envPrefix = env.get(this.environmentPrefixVariable);
-
-					if (version.startsWith(envPrefix)) {
+				if (envPrefix != null) {
+	    			String version = prevAction.getVersionNumber();
+	
+	    			if (version.startsWith(envPrefix)) {
 						return prevBuild;
 					}
-
-				} catch (InterruptedException e) {
-					continue;
-				} catch (IOException e) {
-					continue;
+				} else {
+					return prevBuild;
 				}
-			} else {
-				return prevBuild;
-			}
     		}
+    		
     		prevBuild = prevBuild.getPreviousBuild();
     	}
-	return prevBuild;
+    	
+    	return null;
     }
     
     @SuppressWarnings("unchecked")
