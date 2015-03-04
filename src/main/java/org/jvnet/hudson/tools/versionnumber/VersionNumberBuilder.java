@@ -28,6 +28,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+
 /**
  * Sample {@link Builder}.
  *
@@ -296,6 +299,9 @@ public class VersionNumberBuilder extends BuildWrapper {
                                               PrintStream log) {
     	String vnf = new String(versionNumberFormatString);
     	
+    	buildDate.setMinimalDaysInFirstWeek(4);
+    	buildDate.setFirstDayOfWeek(Calendar.MONDAY);
+    	
     	int blockStart = 0;
     	do {
             // blockStart and blockEnd define the starting and ending positions of the entire block, including
@@ -337,6 +343,8 @@ public class VersionNumberBuilder extends BuildWrapper {
                     replaceValue = fmt.format(buildDate.getTime());
                 } else if ("BUILD_DAY".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.DAY_OF_MONTH)), argumentString.length());
+                } else if ("BUILD_WEEK_OF_YEAR".equals(expressionKey)) {
+                    replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.WEEK_OF_YEAR)), argumentString.length());
                 } else if ("BUILD_MONTH".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.MONTH) + 1), argumentString.length());
                 } else if ("BUILD_YEAR".equals(expressionKey)) {
@@ -357,6 +365,10 @@ public class VersionNumberBuilder extends BuildWrapper {
                     replaceValue = sizeTo(Integer.toString(info.getBuildsThisYear() - 1), argumentString.length());
                 } else if ("BUILDS_ALL_TIME_Z".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(info.getBuildsAllTime() - 1), argumentString.length());
+                } else if ("WEEKS_SINCE_PROJECT_START".equals(expressionKey)) {
+                    int daysSinceStart = Days.daysBetween(new DateTime(projectStartDate), new DateTime(buildDate.getTime())).getDays();
+                    int weeksSinceStart = daysSinceStart / 7;
+                    replaceValue = sizeTo(Integer.toString(weeksSinceStart), argumentString.length());
                 } else if ("MONTHS_SINCE_PROJECT_START".equals(expressionKey)) {
                     Calendar projectStartCal = Calendar.getInstance();
                     projectStartCal.setTime(projectStartDate);
