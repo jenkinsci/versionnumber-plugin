@@ -71,9 +71,9 @@ public class VersionNumberBuilder extends BuildWrapper {
             String buildsThisYear,
             String buildsAllTime,
             boolean skipFailedBuilds) {
-		this(versionNumberString, projectStartDate, environmentVariableName,
-				environmentPrefixVariable, buildsToday, buildsThisMonth,
-				buildsThisYear, buildsAllTime, skipFailedBuilds, false);
+        this(versionNumberString, projectStartDate, environmentVariableName,
+                environmentPrefixVariable, buildsToday, buildsThisMonth,
+                buildsThisYear, buildsAllTime, skipFailedBuilds, false);
     }
     
     @DataBoundConstructor
@@ -118,35 +118,35 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     public String getBuildsToday() {
-    	return "";
+        return "";
     }
     
     public String getBuildsThisMonth() {
-    	return "";
+        return "";
     }
     
     public String getBuildsThisYear() {
-    	return "";
+        return "";
     }
     
     public String getBuildsAllTime() {
-    	return "";
+        return "";
     }
     
     public boolean getSkipFailedBuilds() {
-    	return this.skipFailedBuilds;
+        return this.skipFailedBuilds;
     }
     
     public boolean getUseAsBuildDisplayName() {
-    	return this.useAsBuildDisplayName;
+        return this.useAsBuildDisplayName;
     }
     
     private static Date parseDate(String dateString) {
-    	try {
+        try {
             return defaultDateFormat.parse(dateString);
-    	} catch (Exception e) {
+        } catch (Exception e) {
             return new Date(0);
-    	}
+        }
     }
     
     /**
@@ -157,135 +157,135 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     public String getProjectStartDate() {
-    	return defaultDateFormat.format(projectStartDate);
+        return defaultDateFormat.format(projectStartDate);
     }
     public String getEnvironmentVariableName() {
-    	return this.environmentVariableName;
+        return this.environmentVariableName;
     }
     public String getEnvironmentPrefixVariable() {
         return this.environmentPrefixVariable;
     }
     private Run getPreviousBuildWithVersionNumber(AbstractBuild build) {
-    	String envPrefix;
-    	
-    	if (this.environmentPrefixVariable != null) {
-			try {
-				EnvVars env = build.getEnvironment(null);
-				
-				envPrefix = env.get(this.environmentPrefixVariable);
-			} catch (IOException e) {
-				envPrefix = null;
-			} catch (InterruptedException e) {
-				envPrefix = null;
-			}
-    	} else {
-    		envPrefix = null;
-    	}
-    	
-    	// a build that fails early will not have a VersionNumberAction attached
-    	Run prevBuild = build.getPreviousBuild();
-    	
-    	while (prevBuild != null) {
-    		VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
-    		
-    		if (prevAction != null) {
-				if (envPrefix != null) {
-	    			String version = prevAction.getVersionNumber();
-	
-	    			if (version.startsWith(envPrefix)) {
-						return prevBuild;
-					}
-				} else {
-					return prevBuild;
-				}
-    		}
-    		
-    		prevBuild = prevBuild.getPreviousBuild();
-    	}
-    	
-    	return null;
+        String envPrefix;
+        
+        if (this.environmentPrefixVariable != null) {
+            try {
+                EnvVars env = build.getEnvironment(null);
+                
+                envPrefix = env.get(this.environmentPrefixVariable);
+            } catch (IOException e) {
+                envPrefix = null;
+            } catch (InterruptedException e) {
+                envPrefix = null;
+            }
+        } else {
+            envPrefix = null;
+        }
+        
+        // a build that fails early will not have a VersionNumberAction attached
+        Run prevBuild = build.getPreviousBuild();
+        
+        while (prevBuild != null) {
+            VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
+            
+            if (prevAction != null) {
+                if (envPrefix != null) {
+                    String version = prevAction.getVersionNumber();
+    
+                    if (version.startsWith(envPrefix)) {
+                        return prevBuild;
+                    }
+                } else {
+                    return prevBuild;
+                }
+            }
+            
+            prevBuild = prevBuild.getPreviousBuild();
+        }
+        
+        return null;
     }
     
     @SuppressWarnings("unchecked")
     private VersionNumberBuildInfo incBuild(AbstractBuild build, PrintStream log) throws IOException {
-    	Run prevBuild = getPreviousBuildWithVersionNumber(build);
-    	int buildsToday = 1;
-    	int buildsThisMonth = 1;
-    	int buildsThisYear = 1;
-    	int buildsAllTime = 1;
-    	// this is what we add to the previous version number to get builds today/this month/ this year/all time
-    	int buildInc = 1;
-    	
-    	if (prevBuild != null) {
-    	    // if we're skipping version numbers on failed builds and the last build failed...
-    	    if (skipFailedBuilds && !prevBuild.getResult().equals(Result.SUCCESS)) {
+        Run prevBuild = getPreviousBuildWithVersionNumber(build);
+        int buildsToday = 1;
+        int buildsThisMonth = 1;
+        int buildsThisYear = 1;
+        int buildsAllTime = 1;
+        // this is what we add to the previous version number to get builds today/this month/ this year/all time
+        int buildInc = 1;
+        
+        if (prevBuild != null) {
+            // if we're skipping version numbers on failed builds and the last build failed...
+            if (skipFailedBuilds && !prevBuild.getResult().equals(Result.SUCCESS)) {
                 // don't increment
                 buildInc = 0;
-    	    }
+            }
             // get the current build date and the previous build date
             Calendar curCal = build.getTimestamp();
             Calendar todayCal = prevBuild.getTimestamp();
             
             // get the previous build version number information
             VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
-			VersionNumberBuildInfo info = prevAction.getInfo();
+            VersionNumberBuildInfo info = prevAction.getInfo();
 
-			// increment builds per day
-			if (curCal.get(Calendar.DAY_OF_MONTH) == todayCal
-					.get(Calendar.DAY_OF_MONTH)
-					&& curCal.get(Calendar.MONTH) == todayCal
-							.get(Calendar.MONTH)
-					&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-				buildsToday = info.getBuildsToday() + buildInc;
-			} else {
-				buildsToday = 1;
-			}
+            // increment builds per day
+            if (curCal.get(Calendar.DAY_OF_MONTH) == todayCal
+                    .get(Calendar.DAY_OF_MONTH)
+                    && curCal.get(Calendar.MONTH) == todayCal
+                            .get(Calendar.MONTH)
+                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
+                buildsToday = info.getBuildsToday() + buildInc;
+            } else {
+                buildsToday = 1;
+            }
 
-			// increment builds per month
-			if (curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
-					&& curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-				buildsThisMonth = info.getBuildsThisMonth() + buildInc;
-			} else {
-				buildsThisMonth = 1;
-			}
+            // increment builds per month
+            if (curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
+                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
+                buildsThisMonth = info.getBuildsThisMonth() + buildInc;
+            } else {
+                buildsThisMonth = 1;
+            }
 
-			// increment builds per year
-			if (curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-				buildsThisYear = info.getBuildsThisYear() + buildInc;
-			} else {
-				buildsThisYear = 1;
-			}
+            // increment builds per year
+            if (curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
+                buildsThisYear = info.getBuildsThisYear() + buildInc;
+            } else {
+                buildsThisYear = 1;
+            }
 
-			// increment total builds
-			buildsAllTime = info.getBuildsAllTime() + buildInc;
-		}
-    	// have we overridden any of the version number info?  If so, set it up here
-    	boolean saveOverrides = false;
-    	if (this.oBuildsToday >= 0) {
+            // increment total builds
+            buildsAllTime = info.getBuildsAllTime() + buildInc;
+        }
+        // have we overridden any of the version number info?  If so, set it up here
+        boolean saveOverrides = false;
+        if (this.oBuildsToday >= 0) {
             buildsToday = oBuildsToday;
             oBuildsToday = -1;
             saveOverrides = true;
-    	}
-    	if (this.oBuildsThisMonth >= 0) {
+        }
+        if (this.oBuildsThisMonth >= 0) {
             buildsThisMonth = oBuildsThisMonth;
             oBuildsThisMonth = -1;
             saveOverrides = true;
-    	}
-    	if (this.oBuildsThisYear >= 0) {
+        }
+        if (this.oBuildsThisYear >= 0) {
             buildsThisYear = oBuildsThisYear;
             oBuildsThisYear = -1;
             saveOverrides = true;
-    	}
-    	if (this.oBuildsAllTime >= 0) {
+        }
+        if (this.oBuildsAllTime >= 0) {
             buildsAllTime = oBuildsAllTime;
             oBuildsAllTime = -1;
             saveOverrides = true;
-    	}
-    	// if we've used any of the overrides, reset them in the project
-    	if (saveOverrides) {
+        }
+        // if we've used any of the overrides, reset them in the project
+        if (saveOverrides) {
             build.getProject().save();
-    	}
-    	return new VersionNumberBuildInfo(buildsToday, buildsThisMonth, buildsThisYear, buildsAllTime);
+        }
+        return new VersionNumberBuildInfo(buildsToday, buildsThisMonth, buildsThisYear, buildsAllTime);
     }
     
     private static String formatVersionNumber(String versionNumberFormatString,
@@ -294,10 +294,10 @@ public class VersionNumberBuilder extends BuildWrapper {
                                               Map<String, String> enVars,
                                               Calendar buildDate,
                                               PrintStream log) {
-    	String vnf = new String(versionNumberFormatString);
-    	
-    	int blockStart = 0;
-    	do {
+        String vnf = new String(versionNumberFormatString);
+        
+        int blockStart = 0;
+        do {
             // blockStart and blockEnd define the starting and ending positions of the entire block, including
             // the ${}
             blockStart = vnf.indexOf("${");
@@ -321,7 +321,7 @@ public class VersionNumberBuilder extends BuildWrapper {
                 String expressionKey = vnf.substring(commandStart, commandEnd);
                 String argumentString = argumentEnd > 0 ? vnf.substring(argumentStart + 1, argumentEnd).trim() : "";
                 String replaceValue = "";
-    		
+            
                 // we have the expression key; if it's any known key, fill in the value
                 if ("".equals(expressionKey)) {
                     replaceValue = "";
@@ -379,9 +379,9 @@ public class VersionNumberBuilder extends BuildWrapper {
                 }
                 vnf = vnf.substring(0, blockStart) + replaceValue + vnf.substring(blockEnd, vnf.length());
             }
-    	} while (blockStart >= 0);
-    	
-    	return vnf;
+        } while (blockStart >= 0);
+        
+        return vnf;
     }
     
     private static String sizeTo(String s, int length) {
@@ -393,8 +393,8 @@ public class VersionNumberBuilder extends BuildWrapper {
     
     @SuppressWarnings("unchecked") @Override
     public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) {
-    	String formattedVersionNumber = "";
-    	try {
+        String formattedVersionNumber = "";
+        try {
             VersionNumberBuildInfo info = incBuild(build, listener.getLogger());
             formattedVersionNumber = formatVersionNumber(this.versionNumberString,
                                                          this.projectStartDate,
@@ -405,7 +405,7 @@ public class VersionNumberBuilder extends BuildWrapper {
                                                          );
             build.addAction(new VersionNumberAction(info, formattedVersionNumber));
             if (useAsBuildDisplayName) {
-            	build.setDisplayName(formattedVersionNumber);
+                build.setDisplayName(formattedVersionNumber);
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -434,7 +434,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     @Extension
-	public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
+    public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
     
     /**
      * Descriptor for {@link VersionNumberBuilder}. Used as a singleton.
