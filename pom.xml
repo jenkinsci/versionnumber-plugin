@@ -24,6 +24,12 @@
 
   <developers>
     <developer>
+      <id>rosberglinhares</id>
+      <name>Rosberg Linhares</name>
+      <email>rosberglinhares@gmail.com</email>
+      <timezone>America/Recife</timezone>
+    </developer>
+    <developer>
       <id>abayer</id>
       <name>Andrew Bayer</name>
       <email>andrew.bayer@gmail.com</email>
