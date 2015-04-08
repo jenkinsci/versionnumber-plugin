@@ -173,9 +173,7 @@ public class VersionNumberBuilder extends BuildWrapper {
                 EnvVars env = build.getEnvironment(null);
                 
                 envPrefix = env.get(this.environmentPrefixVariable);
-            } catch (IOException e) {
-                envPrefix = null;
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 envPrefix = null;
             }
         } else {
