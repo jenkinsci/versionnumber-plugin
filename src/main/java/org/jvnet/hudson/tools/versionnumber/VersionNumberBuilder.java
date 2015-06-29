@@ -21,6 +21,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sf.json.JSONObject;
 
@@ -39,25 +41,35 @@ import org.kohsuke.stapler.StaplerRequest;
  * <p>
  * This plugin keeps track of its version through a {@link VersionNumberAction} attached
  * to the project.  Each build that uses this plugin has its own VersionNumberAction,
- * and this contains the builds today/this month/ this year/ all time.  When incrementing
+ * and this contains the builds today / this month / this year / all time.  When incrementing
  * each of these values, unless they're overridden in the configuration the value from
  * the previous build will be used.
  * </p>
+ * <p>
+ * Such a value can be either overridden with a plain number or with an environment-variable.
+ * In the later case the value will be read from the environment-variable at build-time. If
+ * it cannot be parsed as an integer the value from the previous build will incremented and
+ * used instead.
+ * </p>
  *
  * @author Carl Lischeske - NETFLIX
+ * @author Deniz Bahadir - BENOCS
  */
 public class VersionNumberBuilder extends BuildWrapper {
     
     private static final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    // Pattern:   ${VAR_NAME} or $VAR_NAME
+    private static final String envVarPattern = new String("^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$");
+
     private final String versionNumberString;
     private final Date projectStartDate;
     private final String environmentVariableName;
     private final String environmentPrefixVariable;
     
-    private int oBuildsToday;
-    private int oBuildsThisMonth;
-    private int oBuildsThisYear;
-    private int oBuildsAllTime;
+    private String oBuildsToday;
+    private String oBuildsThisMonth;
+    private String oBuildsThisYear;
+    private String oBuildsAllTime;
     
     private boolean skipFailedBuilds;
     private boolean useAsBuildDisplayName; 
@@ -94,43 +106,26 @@ public class VersionNumberBuilder extends BuildWrapper {
         this.skipFailedBuilds = skipFailedBuilds;
         this.useAsBuildDisplayName = useAsBuildDisplayName;
         
-        try {
-            oBuildsToday = Integer.parseInt(buildsToday);
-        } catch (Exception e) {
-            oBuildsToday = -1;
-        }
-        try {
-            oBuildsThisMonth = Integer.parseInt(buildsThisMonth);
-        } catch (Exception e) {
-            oBuildsThisMonth = -1;
-        }
-        try {
-            oBuildsThisYear = Integer.parseInt(buildsThisYear);
-        } catch (Exception e) {
-            oBuildsThisYear = -1;
-        }
-        try {
-            oBuildsAllTime = Integer.parseInt(buildsAllTime);
-        } catch (Exception e) {
-            oBuildsAllTime = -1;
-        }
-        
+        this.oBuildsToday = makeValid(buildsToday);
+        this.oBuildsThisMonth = makeValid(buildsThisMonth);
+        this.oBuildsThisYear = makeValid(buildsThisYear);
+        this.oBuildsAllTime = makeValid(buildsAllTime);
     }
     
     public String getBuildsToday() {
-        return "";
+        return this.oBuildsToday;
     }
     
     public String getBuildsThisMonth() {
-        return "";
+        return this.oBuildsThisMonth;
     }
     
     public String getBuildsThisYear() {
-        return "";
+        return this.oBuildsThisYear;
     }
     
     public String getBuildsAllTime() {
-        return "";
+        return this.oBuildsAllTime;
     }
     
     public boolean getSkipFailedBuilds() {
@@ -146,6 +141,37 @@ public class VersionNumberBuilder extends BuildWrapper {
             return defaultDateFormat.parse(dateString);
         } catch (Exception e) {
             return new Date(0);
+        }
+    }
+    
+    /**
+     * Checks if the given string contains a valid value and returns that
+     * value again if it is valid or returns an empty string if it is not. A
+     * valid value encoded in the string must either be a number, convertible
+     * to an integer or a reference to an environment-variable in
+     * the form <code>${VARIABLE_NAME}</code> or <code>$VARIABLE_NAME</code>.
+     * @param buildNum The (user-provided) string which should either contain
+     *                 a number or a reference to an environment-variable.
+     * @return The given <a>buildNum</a> if valid or an empty string.
+     */
+    private static String makeValid(String buildNum) {
+        try {
+            // If we got a valid integer the following conversion will
+            // succeed without an exception.
+            Integer intVal = new Integer(buildNum);
+            return intVal.toString();
+        } catch (Exception e) {
+            // Obviously, we did not receive a valid integer as override.
+            // Is it a reference to an environment-variable?
+            if (buildNum != null && buildNum.matches(envVarPattern)) {
+                // Yes, so return it as-is and only retrieve its value when
+                // the value must be accessed (to always get the most
+                // up-to-date value).
+                return buildNum;
+            } else {
+                // No, so it seems to be junk. Just return the default-value.
+                return "";
+            }
         }
     }
     
@@ -207,7 +233,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     @SuppressWarnings("unchecked")
-    private VersionNumberBuildInfo incBuild(AbstractBuild build, PrintStream log) throws IOException {
+    private VersionNumberBuildInfo incBuild(AbstractBuild build, Map<String, String> enVars, PrintStream log) throws IOException {
         Run prevBuild = getPreviousBuildWithVersionNumber(build);
         int buildsToday = 1;
         int buildsThisMonth = 1;
@@ -259,27 +285,86 @@ public class VersionNumberBuilder extends BuildWrapper {
             // increment total builds
             buildsAllTime = info.getBuildsAllTime() + buildInc;
         }
+        
         // have we overridden any of the version number info?  If so, set it up here
         boolean saveOverrides = false;
-        if (this.oBuildsToday >= 0) {
-            buildsToday = oBuildsToday;
-            oBuildsToday = -1;
-            saveOverrides = true;
+        Pattern pattern = Pattern.compile(envVarPattern);
+        
+        if (!this.oBuildsToday.equals("")) {
+            if (!oBuildsToday.matches(envVarPattern)) {
+                // NOTE: Will not throw because of "makeValid" above!
+                buildsToday = Integer.parseInt(oBuildsToday);
+                oBuildsToday = "";  // Reset.
+            } else {
+                try {
+                    Matcher m = pattern.matcher(oBuildsToday);
+                    if (m.matches()) {
+                      String varName = (m.group(1) != null) ? m.group(1) : m.group(2);
+                      buildsToday = Integer.parseInt(enVars.get(varName));
+                    }
+                } catch (Exception e) {
+                    // Invalid value, so do not override!
+                }
+            }
+            saveOverrides = true;  // Because either the value changed or
+                                   // it was an environment-variable.
         }
-        if (this.oBuildsThisMonth >= 0) {
-            buildsThisMonth = oBuildsThisMonth;
-            oBuildsThisMonth = -1;
-            saveOverrides = true;
+        if (!this.oBuildsThisMonth.equals("")) {
+            if (!oBuildsThisMonth.matches(envVarPattern)) {
+                // NOTE: Will not throw because of "makeValid" above!
+                buildsThisMonth = Integer.parseInt(oBuildsThisMonth);
+                oBuildsThisMonth = "";  // Reset.
+            } else {
+                try {
+                    Matcher m = pattern.matcher(oBuildsThisMonth);
+                    if (m.matches()) {
+                      String varName = (m.group(1) != null) ? m.group(1) : m.group(2);
+                      buildsThisMonth = Integer.parseInt(enVars.get(varName));
+                    }
+                } catch (Exception e) {
+                    // Invalid value, so do not override!
+                }
+            }
+            saveOverrides = true;  // Because either the value changed or
+                                   // it was an environment-variable.
         }
-        if (this.oBuildsThisYear >= 0) {
-            buildsThisYear = oBuildsThisYear;
-            oBuildsThisYear = -1;
-            saveOverrides = true;
+        if (!this.oBuildsThisYear.equals("")) {
+            if (!oBuildsThisYear.matches(envVarPattern)) {
+                // NOTE: Will not throw because of "makeValid" above!
+                buildsThisYear = Integer.parseInt(oBuildsThisYear);
+                oBuildsThisYear = "";  // Reset.
+            } else {
+                try {
+                    Matcher m = pattern.matcher(oBuildsThisYear);
+                    if (m.matches()) {
+                      String varName = (m.group(1) != null) ? m.group(1) : m.group(2);
+                      buildsThisYear = Integer.parseInt(enVars.get(varName));
+                    }
+                } catch (Exception e) {
+                    // Invalid value, so do not override!
+                }
+            }
+            saveOverrides = true;  // Because either the value changed or
+                                   // it was an environment-variable.
         }
-        if (this.oBuildsAllTime >= 0) {
-            buildsAllTime = oBuildsAllTime;
-            oBuildsAllTime = -1;
-            saveOverrides = true;
+        if (!this.oBuildsAllTime.equals("")) {
+            if (!oBuildsAllTime.matches(envVarPattern)) {
+                // NOTE: Will not throw because of "makeValid" above!
+                buildsAllTime = Integer.parseInt(oBuildsAllTime);
+                oBuildsAllTime = "";  // Reset.
+            } else {
+                try {
+                    Matcher m = pattern.matcher(oBuildsAllTime);
+                    if (m.matches()) {
+                      String varName = (m.group(1) != null) ? m.group(1) : m.group(2);
+                      buildsAllTime = Integer.parseInt(enVars.get(varName));
+                    }
+                } catch (Exception e) {
+                    // Invalid value, so do not override!
+                }
+            }
+            saveOverrides = true;  // Because either the value changed or
+                                   // it was an environment-variable.
         }
         // if we've used any of the overrides, reset them in the project
         if (saveOverrides) {
@@ -395,7 +480,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) {
         String formattedVersionNumber = "";
         try {
-            VersionNumberBuildInfo info = incBuild(build, listener.getLogger());
+            VersionNumberBuildInfo info = incBuild(build, build.getEnvironment(listener), listener.getLogger());
             formattedVersionNumber = formatVersionNumber(this.versionNumberString,
                                                          this.projectStartDate,
                                                          info,

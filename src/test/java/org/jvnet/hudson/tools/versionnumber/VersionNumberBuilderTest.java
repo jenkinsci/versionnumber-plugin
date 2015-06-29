@@ -111,6 +111,25 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
         assertEquals("1.0.2", build.getDisplayName());
     }
     
+    public void testValueFromEnvironmentVariable() throws Exception {
+        FreeStyleProject job = createFreeStyleProject("versionNumberJob");
+        VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
+                "${BUILDS_TODAY}.${BUILDS_THIS_MONTH}.${BUILDS_THIS_YEAR}.${BUILDS_ALL_TIME}",
+                null, null, null, "${ENVVAL_OF_TODAY}", "${ENVVAL_OF_THIS_MONTH}", "${ENVVAL_OF_THIS_YEAR}", "${ENVVAL_OF_ALL_TIME}", false, true);
+        
+        EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
+        EnvVars envVars = prop.getEnvVars();
+        envVars.put("ENVVAL_OF_TODAY", "-10");           // Negative value
+        envVars.put("ENVVAL_OF_THIS_MONTH", "Invalid");  // Invalid value
+        //envVars.put("ENVVAL_OF_THIS_YEAR", "");        // No variable
+        envVars.put("ENVVAL_OF_ALL_TIME", "20");         // Normal value
+        super.hudson.getGlobalNodeProperties().add(prop);
+        
+        job.getBuildWrappersList().add(versionNumberBuilder);
+        FreeStyleBuild build = buildAndAssertSuccess(job);
+        assertEquals("-10.1.1.20", build.getDisplayName());
+    }
+    
     private void assertBuildsAllTime(int expected, AbstractBuild build) {
         VersionNumberAction versionNumberAction = build
                 .getAction(VersionNumberAction.class);
