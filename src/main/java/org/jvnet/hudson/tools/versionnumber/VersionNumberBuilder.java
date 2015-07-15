@@ -155,7 +155,9 @@ public class VersionNumberBuilder extends BuildWrapper {
      * @return The given <a>buildNum</a> if valid or an empty string.
      */
     private static String makeValid(String buildNum) {
+        if (buildNum == null) return "";  // Return the default-value.
         try {
+            buildNum = buildNum.trim();
             // If we got a valid integer the following conversion will
             // succeed without an exception.
             Integer intVal = new Integer(buildNum);
@@ -166,7 +168,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         } catch (Exception e) {
             // Obviously, we did not receive a valid integer as override.
             // Is it a reference to an environment-variable?
-            if (buildNum != null && buildNum.matches(envVarPattern)) {
+            if (buildNum.matches(envVarPattern)) {
                 // Yes, so return it as-is and only retrieve its value when
                 // the value must be accessed (to always get the most
                 // up-to-date value).
