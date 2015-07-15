@@ -59,7 +59,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     
     private static final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     // Pattern:   ${VAR_NAME} or $VAR_NAME
-    private static final String envVarPattern = new String("^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$");
+    private static final String ENV_VAR_PATTERN = new String("^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$");
 
     private final String versionNumberString;
     private final Date projectStartDate;
@@ -168,7 +168,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         } catch (Exception e) {
             // Obviously, we did not receive a valid integer as override.
             // Is it a reference to an environment-variable?
-            if (buildNum.matches(envVarPattern)) {
+            if (buildNum.matches(ENV_VAR_PATTERN)) {
                 // Yes, so return it as-is and only retrieve its value when
                 // the value must be accessed (to always get the most
                 // up-to-date value).
@@ -293,7 +293,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         
         // have we overridden any of the version number info?  If so, set it up here
         boolean saveOverrides = false;
-        Pattern pattern = Pattern.compile(envVarPattern);
+        Pattern pattern = Pattern.compile(ENV_VAR_PATTERN);
 
         if (!this.oBuildsToday.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
@@ -301,7 +301,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             oBuildsToday = makeValid(oBuildsToday);
             int newVal = buildsToday;
             try {
-                if (!oBuildsToday.matches(envVarPattern)) {
+                if (!oBuildsToday.matches(ENV_VAR_PATTERN)) {
                     newVal = Integer.parseInt(oBuildsToday);
                     oBuildsToday = "";  // Reset!
                 } else {
@@ -322,7 +322,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             oBuildsThisMonth = makeValid(oBuildsThisMonth);
             int newVal = buildsThisMonth;
             try {
-                if (!oBuildsThisMonth.matches(envVarPattern)) {
+                if (!oBuildsThisMonth.matches(ENV_VAR_PATTERN)) {
                     newVal = Integer.parseInt(oBuildsThisMonth);
                     oBuildsThisMonth = "";  // Reset!
                 } else {
@@ -343,7 +343,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             oBuildsThisYear = makeValid(oBuildsThisYear);
             int newVal = buildsThisYear;
             try {
-                if (!oBuildsThisYear.matches(envVarPattern)) {
+                if (!oBuildsThisYear.matches(ENV_VAR_PATTERN)) {
                     newVal = Integer.parseInt(oBuildsThisYear);
                     oBuildsThisYear = "";  // Reset!
                 } else {
@@ -364,7 +364,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             oBuildsAllTime = makeValid(oBuildsAllTime);
             int newVal = buildsAllTime;
             try {
-                if (!oBuildsAllTime.matches(envVarPattern)) {
+                if (!oBuildsAllTime.matches(ENV_VAR_PATTERN)) {
                     newVal = Integer.parseInt(oBuildsAllTime);
                     oBuildsAllTime = "";  // Reset!
                 } else {
