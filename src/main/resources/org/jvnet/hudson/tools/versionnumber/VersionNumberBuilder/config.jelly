@@ -10,11 +10,11 @@
   </f:entry>
   <f:entry title="Failed Builds" help="/plugin/versionnumber/help-reuseVersionNumbers.html">
     <f:checkbox name="skipFailedBuilds" checked="${instance.skipFailedBuilds}" />
-    	Don't increment builds today/ this month/ this year/ all time after a failed build.
+        Don't increment builds today / this month / this year / all time after a failed build.
   </f:entry>
   <f:entry title="Build Display Name" help="/plugin/versionnumber/help-useAsBuildDisplayName.html">
     <f:checkbox name="useAsBuildDisplayName" checked="${instance.useAsBuildDisplayName}" />
-    	Use the formatted version number for build display name.
+        Use the formatted version number for build display name.
   </f:entry>
   <f:entry title="Project Start Date" help="/plugin/versionnumber/help-projectStartDate.html">
     <f:textbox field="projectStartDate" />
