@@ -507,15 +507,13 @@ public class VersionNumberBuilder extends BuildWrapper {
                 build.setDisplayName(formattedVersionNumber);
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            listener.error(e.toString());
+            e.printStackTrace(listener.error(e.toString()));
             build.setResult(Result.FAILURE);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            listener.error(e.toString());
+            e.printStackTrace(listener.error(e.toString()));
             build.setResult(Result.FAILURE);
         } catch (Exception e) {
-            listener.error(e.toString());
+            e.printStackTrace(listener.error(e.toString()));
             build.setResult(Result.FAILURE);
         }
         final String finalVersionNumber = formattedVersionNumber;
