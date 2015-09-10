@@ -238,7 +238,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     @SuppressWarnings("unchecked")
-    private VersionNumberBuildInfo incBuild(AbstractBuild build, BuildListener listener, PrintStream log) throws IOException, InterruptedException {
+    private VersionNumberBuildInfo incBuild(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
         Map<String, String> enVars = build.getEnvironment(listener);
         Run prevBuild = getPreviousBuildWithVersionNumber(build, listener);
         int buildsToday = 1;
@@ -495,7 +495,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) {
         String formattedVersionNumber = "";
         try {
-            VersionNumberBuildInfo info = incBuild(build, listener, listener.getLogger());
+            VersionNumberBuildInfo info = incBuild(build, listener);
             formattedVersionNumber = formatVersionNumber(this.versionNumberString,
                                                          this.projectStartDate,
                                                          info,
