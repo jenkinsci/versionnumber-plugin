@@ -196,12 +196,12 @@ public class VersionNumberBuilder extends BuildWrapper {
     public String getEnvironmentPrefixVariable() {
         return this.environmentPrefixVariable;
     }
-    private Run getPreviousBuildWithVersionNumber(AbstractBuild build) {
+    private Run getPreviousBuildWithVersionNumber(AbstractBuild build, BuildListener listener) {
         String envPrefix;
         
         if (this.environmentPrefixVariable != null) {
             try {
-                EnvVars env = build.getEnvironment(null);
+                EnvVars env = build.getEnvironment(listener);
                 
                 envPrefix = env.get(this.environmentPrefixVariable);
             } catch (IOException e) {
@@ -238,8 +238,9 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     @SuppressWarnings("unchecked")
-    private VersionNumberBuildInfo incBuild(AbstractBuild build, Map<String, String> enVars, PrintStream log) throws IOException {
-        Run prevBuild = getPreviousBuildWithVersionNumber(build);
+    private VersionNumberBuildInfo incBuild(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+        Map<String, String> enVars = build.getEnvironment(listener);
+        Run prevBuild = getPreviousBuildWithVersionNumber(build, listener);
         int buildsToday = 1;
         int buildsThisMonth = 1;
         int buildsThisYear = 1;
@@ -494,7 +495,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) {
         String formattedVersionNumber = "";
         try {
-            VersionNumberBuildInfo info = incBuild(build, build.getEnvironment(listener), listener.getLogger());
+            VersionNumberBuildInfo info = incBuild(build, listener);
             formattedVersionNumber = formatVersionNumber(this.versionNumberString,
                                                          this.projectStartDate,
                                                          info,
