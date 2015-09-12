@@ -296,7 +296,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         boolean saveOverrides = false;
         Pattern pattern = Pattern.compile(ENV_VAR_PATTERN);
 
-        if (!this.oBuildsToday.equals("")) {
+        if (this.oBuildsToday == null || !this.oBuildsToday.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
             // Just in case someone directly edited the config-file with invalid values.
             oBuildsToday = makeValid(oBuildsToday);
@@ -317,7 +317,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             }
             buildsToday = ((newVal >= 0) ? newVal : buildsToday);
         }
-        if (!this.oBuildsThisMonth.equals("")) {
+        if (this.oBuildsThisMonth == null || !this.oBuildsThisMonth.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
             // Just in case someone directly edited the config-file with invalid values.
             oBuildsThisMonth = makeValid(oBuildsThisMonth);
@@ -338,7 +338,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             }
             buildsThisMonth = ((newVal >= 0) ? newVal : buildsThisMonth);
         }
-        if (!this.oBuildsThisYear.equals("")) {
+        if (this.oBuildsThisYear == null || !this.oBuildsThisYear.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
             // Just in case someone directly edited the config-file with invalid values.
             oBuildsThisYear = makeValid(oBuildsThisYear);
@@ -359,7 +359,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             }
             buildsThisYear = ((newVal >= 0) ? newVal : buildsThisYear);
         }
-        if (!this.oBuildsAllTime.equals("")) {
+        if (this.oBuildsAllTime == null || !this.oBuildsAllTime.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
             // Just in case someone directly edited the config-file with invalid values.
             oBuildsAllTime = makeValid(oBuildsAllTime);
