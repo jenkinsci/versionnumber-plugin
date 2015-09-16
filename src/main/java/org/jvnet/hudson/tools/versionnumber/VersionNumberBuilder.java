@@ -41,9 +41,9 @@ import org.kohsuke.stapler.StaplerRequest;
  * <p>
  * This plugin keeps track of its version through a {@link VersionNumberAction} attached
  * to the project.  Each build that uses this plugin has its own VersionNumberAction,
- * and this contains the builds today / this month / this year / all time.  When incrementing
- * each of these values, unless they're overridden in the configuration the value from
- * the previous build will be used.
+ * and this contains the builds today / this week / this month / this year / all time.
+ * When incrementing each of these values, unless they're overridden in the configuration
+ * the value from the previous build will be used.
  * </p>
  * <p>
  * Such a value can be either overridden with a plain number or with an environment-variable.
@@ -67,6 +67,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     private final String environmentPrefixVariable;
     
     private String oBuildsToday;
+    private String oBuildsThisWeek;
     private String oBuildsThisMonth;
     private String oBuildsThisYear;
     private String oBuildsAllTime;
@@ -79,12 +80,13 @@ public class VersionNumberBuilder extends BuildWrapper {
             String environmentVariableName,
             String environmentPrefixVariable,
             String buildsToday,
+            String buildsThisWeek,
             String buildsThisMonth,
             String buildsThisYear,
             String buildsAllTime,
             boolean skipFailedBuilds) {
         this(versionNumberString, projectStartDate, environmentVariableName,
-                environmentPrefixVariable, buildsToday, buildsThisMonth,
+                environmentPrefixVariable, buildsToday, buildsThisWeek, buildsThisMonth,
                 buildsThisYear, buildsAllTime, skipFailedBuilds, false);
     }
     
@@ -94,6 +96,7 @@ public class VersionNumberBuilder extends BuildWrapper {
                                 String environmentVariableName,
                                 String environmentPrefixVariable,
                                 String buildsToday,
+                                String buildsThisWeek,
                                 String buildsThisMonth,
                                 String buildsThisYear,
                                 String buildsAllTime,
@@ -107,6 +110,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         this.useAsBuildDisplayName = useAsBuildDisplayName;
         
         this.oBuildsToday = makeValid(buildsToday);
+        this.oBuildsThisWeek = makeValid(buildsThisWeek);
         this.oBuildsThisMonth = makeValid(buildsThisMonth);
         this.oBuildsThisYear = makeValid(buildsThisYear);
         this.oBuildsAllTime = makeValid(buildsAllTime);
@@ -114,6 +118,10 @@ public class VersionNumberBuilder extends BuildWrapper {
     
     public String getBuildsToday() {
         return this.oBuildsToday;
+    }
+    
+    public String getBuildsThisWeek() {
+        return this.oBuildsThisWeek;
     }
     
     public String getBuildsThisMonth() {
@@ -242,10 +250,11 @@ public class VersionNumberBuilder extends BuildWrapper {
         Map<String, String> enVars = build.getEnvironment(listener);
         Run prevBuild = getPreviousBuildWithVersionNumber(build, listener);
         int buildsToday = 1;
+        int buildsThisWeek = 1;
         int buildsThisMonth = 1;
         int buildsThisYear = 1;
         int buildsAllTime = 1;
-        // this is what we add to the previous version number to get builds today/this month/ this year/all time
+        // this is what we add to the previous version number to get builds today / this week / this month / this year / all time
         int buildInc = 1;
         
         if (prevBuild != null) {
@@ -271,6 +280,14 @@ public class VersionNumberBuilder extends BuildWrapper {
                 buildsToday = info.getBuildsToday() + buildInc;
             } else {
                 buildsToday = 1;
+            }
+
+            // increment builds per week
+            if (curCal.get(Calendar.WEEK_OF_YEAR) == todayCal.get(Calendar.WEEK_OF_YEAR)
+                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
+                buildsThisWeek = info.getBuildsThisWeek() + buildInc;
+            } else {
+                buildsThisWeek = 1;
             }
 
             // increment builds per month
@@ -316,6 +333,27 @@ public class VersionNumberBuilder extends BuildWrapper {
                 // Invalid value, so do not override!
             }
             buildsToday = ((newVal >= 0) ? newVal : buildsToday);
+        }
+        if (this.oBuildsThisWeek == null || !this.oBuildsThisWeek.equals("")) {
+            saveOverrides = true;  // Always need to save if not empty!
+            // Just in case someone directly edited the config-file with invalid values.
+            oBuildsThisWeek = makeValid(oBuildsThisWeek);
+            int newVal = buildsThisWeek;
+            try {
+                if (!oBuildsThisWeek.matches(ENV_VAR_PATTERN)) {
+                    newVal = Integer.parseInt(oBuildsThisWeek);
+                    oBuildsThisWeek = "";  // Reset!
+                } else {
+                    Matcher m = pattern.matcher(oBuildsThisWeek);
+                    if (m.matches()) {
+                        String varName = (m.group(1) != null) ? m.group(1) : m.group(2);
+                        newVal = Integer.parseInt(enVars.get(varName));
+                    }
+                }
+            } catch (Exception e) {
+                // Invalid value, so do not override!
+            }
+            buildsThisWeek = ((newVal >= 0) ? newVal : buildsThisWeek);
         }
         if (this.oBuildsThisMonth == null || !this.oBuildsThisMonth.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
@@ -385,7 +423,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         if (saveOverrides) {
             build.getProject().save();
         }
-        return new VersionNumberBuildInfo(buildsToday, buildsThisMonth, buildsThisYear, buildsAllTime);
+        return new VersionNumberBuildInfo(buildsToday, buildsThisWeek, buildsThisMonth, buildsThisYear, buildsAllTime);
     }
     
     private static String formatVersionNumber(String versionNumberFormatString,
@@ -437,12 +475,16 @@ public class VersionNumberBuilder extends BuildWrapper {
                     replaceValue = fmt.format(buildDate.getTime());
                 } else if ("BUILD_DAY".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.DAY_OF_MONTH)), argumentString.length());
+                } else if ("BUILD_WEEK".equals(expressionKey)) {
+                    replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.WEEK_OF_YEAR)), argumentString.length());
                 } else if ("BUILD_MONTH".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.MONTH) + 1), argumentString.length());
                 } else if ("BUILD_YEAR".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.YEAR)), argumentString.length());
                 } else if ("BUILDS_TODAY".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(info.getBuildsToday()), argumentString.length());
+                } else if ("BUILDS_THIS_WEEK".equals(expressionKey)) {
+                    replaceValue = sizeTo(Integer.toString(info.getBuildsThisWeek()), argumentString.length());
                 } else if ("BUILDS_THIS_MONTH".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(info.getBuildsThisMonth()), argumentString.length());
                 } else if ("BUILDS_THIS_YEAR".equals(expressionKey)) {

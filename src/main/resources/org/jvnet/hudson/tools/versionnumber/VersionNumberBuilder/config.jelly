@@ -22,6 +22,9 @@
   <f:entry title="Number of builds today" help="/plugin/versionnumber/help-overrideNumbers.html">
     <f:textbox field="buildsToday" />
   </f:entry>
+  <f:entry title="Number of builds this week" help="/plugin/versionnumber/help-overrideNumbers.html">
+    <f:textbox field="buildsThisWeek" />
+  </f:entry>
   <f:entry title="Number of builds this month" help="/plugin/versionnumber/help-overrideNumbers.html">
     <f:textbox field="buildsThisMonth" />
   </f:entry>
