@@ -24,6 +24,12 @@
 
   <developers>
     <developer>
+      <id>bahadir</id>
+      <name>Deniz Bahadir</name>
+      <email>versionnumber-plugin.jenkins [at] deniz.bahadir.email</email>
+      <timezone>Europe/Berlin</timezone>
+    </developer>
+    <developer>
       <id>rosberglinhares</id>
       <name>Rosberg Linhares</name>
       <email>rosberglinhares@gmail.com</email>
