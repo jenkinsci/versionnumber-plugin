@@ -499,6 +499,13 @@ public class VersionNumberBuilder extends BuildWrapper {
                     replaceValue = sizeTo(Integer.toString(info.getBuildsThisYear() - 1), argumentString.length());
                 } else if ("BUILDS_ALL_TIME_Z".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(info.getBuildsAllTime() - 1), argumentString.length());
+                } else if ("DAYS_SINCE_PROJECT_START".equals(expressionKey)) {
+                    Date today = Calendar.getInstance().getTime();
+					today.setHours(0);
+					today.setMinutes(0);
+					today.setSeconds(0);					
+					int daysSinceStart = (int)( (today.getTime() - projectStartDate.getTime()) / (1000 * 60 * 60 * 24))
+                    replaceValue = sizeTo(Integer.toString(daysSinceStart), argumentString.length());
                 } else if ("MONTHS_SINCE_PROJECT_START".equals(expressionKey)) {
                     Calendar projectStartCal = Calendar.getInstance();
                     projectStartCal.setTime(projectStartDate);
