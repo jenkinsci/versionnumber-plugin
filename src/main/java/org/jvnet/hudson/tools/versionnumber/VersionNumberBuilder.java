@@ -504,7 +504,7 @@ public class VersionNumberBuilder extends BuildWrapper {
 					today.setHours(0);
 					today.setMinutes(0);
 					today.setSeconds(0);					
-					int daysSinceStart = (int)( (today.getTime() - projectStartDate.getTime()) / (1000 * 60 * 60 * 24))
+					int daysSinceStart = (int)( (today.getTime() - projectStartDate.getTime()) / (1000 * 60 * 60 * 24));
                     replaceValue = sizeTo(Integer.toString(daysSinceStart), argumentString.length());
                 } else if ("MONTHS_SINCE_PROJECT_START".equals(expressionKey)) {
                     Calendar projectStartCal = Calendar.getInstance();
