@@ -516,6 +516,25 @@ public class VersionNumberBuilder extends BuildWrapper {
                     for (String enVarKey : enVars.keySet()) {
                         if (enVarKey.equals(expressionKey)) {
                             replaceValue = enVars.get(enVarKey);
+                            // we will use the below lines to limit the number of character we want to 
+                            // use from the front or the back of the environment variable
+                            // make sure there is an argument string and that it has two quotes
+                            if (!"".equals(argumentString) && argumentString.indexOf("\"") != -1 && argumentString.indexOf("\"") != argumentString.lastIndexOf("\"")) {
+                                // reused this line from above
+                                String fmtString = argumentString.substring(argumentString.indexOf('"') + 1, argumentString.indexOf('"', argumentString.indexOf('"') + 1));
+                                // make sure the number is a positive or negative whole number
+                                if (fmtString.matches("^(-?)\\d*$")) {
+                                    Integer fmtInt = Integer.parseInt(fmtString);
+                                    // if it's not smaller than the length of the value, we will use the whole value
+                                    if (Math.abs(fmtInt.intValue()) < replaceValue.length()) {
+                                        if (fmtInt > 0) {
+                                            replaceValue = replaceValue.substring(0,fmtInt);
+                                        } else if (fmtInt < 0) {
+                                            replaceValue = replaceValue.substring(replaceValue.length()+fmtInt);
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
