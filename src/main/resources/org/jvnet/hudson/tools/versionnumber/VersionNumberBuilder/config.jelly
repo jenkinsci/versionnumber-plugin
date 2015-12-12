@@ -16,6 +16,10 @@
     <f:checkbox name="useAsBuildDisplayName" checked="${instance.useAsBuildDisplayName}" />
         Use the formatted version number for build display name.
   </f:entry>
+  <f:entry title="Format Use UTC Time Zone" help="/plugin/versionnumber/help-environmentFormatTimeInUtc.html">
+    <f:checkbox name="formatTimeInUtc" checked="${instance.formatTimeInUtc}" />
+        When using BUILD_DATE_FORMATTED, the output will use UTC time.
+  </f:entry>
   <f:entry title="Project Start Date" help="/plugin/versionnumber/help-projectStartDate.html">
     <f:textbox field="projectStartDate" />
   </f:entry>
