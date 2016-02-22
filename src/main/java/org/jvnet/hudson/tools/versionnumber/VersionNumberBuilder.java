@@ -523,7 +523,7 @@ public class VersionNumberBuilder extends BuildWrapper {
                                 // reused this line from above
                                 String fmtString = argumentString.substring(argumentString.indexOf('"') + 1, argumentString.indexOf('"', argumentString.indexOf('"') + 1));
                                 // make sure the number is a positive or negative whole number
-                                if (fmtString.matches("^(-?)\\d*$")) {
+                                if (fmtString.matches("^(\\+|-)?\\d*$")) {
                                     Integer fmtInt = Integer.parseInt(fmtString);
                                     // if it's not smaller than the length of the value, we will use the whole value
                                     if (Math.abs(fmtInt.intValue()) < replaceValue.length()) {

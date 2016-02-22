@@ -10,10 +10,17 @@
 		Any variable not recognized in the table below will be replaced by an environment variable of the same name.
 		So to use the hudson build ID, stored in the environment variable BUILD_ID, you'd just use ${BUILD_ID}.
 		If no environment variable of the appropriate name can be found, the expression will just be replaced with
-		an empty string.
+		an empty string. 
 	</p>
 	<p>
-		
+		To limit the size of a variable not recognized in the table below, you can do so in the form of 
+		${variable_name, "N"} where N is a positive or negative whole number less than the amount of characters
+		in the variable. N can be in the form of "+N", "-N", or "N" where a positive number takes the first "N" 
+		characters from the variable and a negative number takes the last "N" characters from a variable. For 
+		example, to split up SVN_REVISION where SVN_REVISION is 123456, ${SVN_REVISION, "2"}.${SVN_REVISION, "-4"}
+		would return 12.3456.
+	</p>
+	<p>
 		<table>
 			<tr>
 			    <td>

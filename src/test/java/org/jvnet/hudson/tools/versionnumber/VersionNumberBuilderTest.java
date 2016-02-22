@@ -131,6 +131,24 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
         assertEquals("1.1.1.1.20", build.getDisplayName());
     }
     
+    public void testSubstringFromEnvironmentVariable() throws Exception {
+        FreeStyleProject job = createFreeStyleProject("versionNumberJob");
+        VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
+                "${ENVVAL_TESTING, \"+3\"}.${ENVVAL_TESTING, \"2\"}.${ENVVAL_TESTING, \"-3\"}" + 
+                ".${ENVVAL_TESTING, \"5\"}.${ENVVAL_TESTING, \"+5\"}.${ENVVAL_TESTING, \"-5\"}" +
+                ".${ENVVAL_TESTING, \"0\"}.${ENVVAL_TESTING, \"1.5\"}.${ENVVAL_TESTING, \"test\"}", 
+                null, "${ENVVAL_TESTING}", null, null, null, null, null, null, false, true);
+        // tried 
+        EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
+        EnvVars envVars = prop.getEnvVars();
+        envVars.put("ENVVAL_TESTING", "1234");
+        super.hudson.getGlobalNodeProperties().add(prop);
+        
+        job.getBuildWrappersList().add(versionNumberBuilder);
+        FreeStyleBuild build = buildAndAssertSuccess(job);
+        assertEquals("123.12.234.1234.1234.1234.1234.1234.1234", build.getDisplayName());
+    }
+    
     private void assertBuildsAllTime(int expected, AbstractBuild build) {
         VersionNumberAction versionNumberAction = build
                 .getAction(VersionNumberAction.class);
