@@ -52,7 +52,7 @@ import java.util.Date;
  */
 public class VersionNumberStep extends AbstractStepImpl {
  
-	private final String versionNumberString; 
+	public final String versionNumberString;
 
     @DataBoundSetter
     public boolean skipFailedBuilds = false;
@@ -75,6 +75,13 @@ public class VersionNumberStep extends AbstractStepImpl {
 		Date value = VersionNumberCommon.parseDate(this.projectStartDate);
 		if (value.compareTo(new Date(0)) != 0) {
 			return value;
+		}
+		return null;
+	}
+
+	public String getVersionPrefix() {
+		if ((this.versionPrefix != null) && (!this.versionPrefix.isEmpty())) {
+			return this.versionPrefix;
 		}
 		return null;
 	}
