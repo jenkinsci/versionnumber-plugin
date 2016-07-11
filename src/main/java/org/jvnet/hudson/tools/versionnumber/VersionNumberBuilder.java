@@ -57,9 +57,9 @@ import org.kohsuke.stapler.StaplerRequest;
  */
 public class VersionNumberBuilder extends BuildWrapper {
     
-    private static final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
     // Pattern:   ${VAR_NAME} or $VAR_NAME
-    private static final String ENV_VAR_PATTERN = new String("^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$");
+    private static final String ENV_VAR_PATTERN = "^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$";
 
     private final String versionNumberString;
     private final Date projectStartDate;
@@ -160,7 +160,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             buildNum = buildNum.trim();
             // If we got a valid integer the following conversion will
             // succeed without an exception.
-            Integer intVal = new Integer(buildNum);
+            Integer intVal = Integer.valueOf(buildNum);
             if (intVal < 0)
                 return "";  // Negative numbers are not allowed.
             else
@@ -188,6 +188,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     public String getProjectStartDate() {
+        final DateFormat defaultDateFormat = new SimpleDateFormat(DEFAULT_DATE_FORMAT_PATTERN);
         return defaultDateFormat.format(projectStartDate);
     }
     public String getEnvironmentVariableName() {

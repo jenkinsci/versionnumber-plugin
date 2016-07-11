@@ -35,7 +35,7 @@ import org.kohsuke.stapler.StaplerRequest;
  */
 public class VersionNumberCommon {
     
-    private static final DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
     
     public static VersionNumberBuildInfo incBuild(Run build, Run prevBuild, boolean skipFailedBuilds) {
         int buildsToday = 1;
@@ -48,9 +48,12 @@ public class VersionNumberCommon {
         
         if (prevBuild != null) {
             // if we're skipping version numbers on failed builds and the last build failed...
-            if (skipFailedBuilds && !prevBuild.getResult().equals(Result.SUCCESS)) {
-                // don't increment
-                buildInc = 0;
+            if (skipFailedBuilds) {
+                Result result = prevBuild.getResult();
+                if (result != null && result.equals(Result.SUCCESS)) {
+                    // don't increment
+                    buildInc = 0;
+                }
             }
             // get the current build date and the previous build date
             Calendar curCal = build.getTimestamp();
@@ -128,6 +131,7 @@ public class VersionNumberCommon {
     
     public static Date parseDate(String dateString) {
         try {
+            final DateFormat defaultDateFormat = new SimpleDateFormat(DEFAULT_DATE_FORMAT_PATTERN);
             return defaultDateFormat.parse(dateString);
         } catch (Exception e) {
             return new Date(0);
@@ -139,7 +143,7 @@ public class VersionNumberCommon {
                                              VersionNumberBuildInfo info,
                                              Map<String, String> enVars,
                                              Calendar buildDate) {
-        String vnf = new String(versionNumberFormatString);
+        String vnf = versionNumberFormatString;
         
         int blockStart = 0;
         do {
@@ -221,9 +225,9 @@ public class VersionNumberCommon {
                 // if it's not one of the defined values, check the environment variables
                 else {
                     if (enVars != null) {
-                        for (String enVarKey : enVars.keySet()) {
-                            if (enVarKey.equals(expressionKey)) {
-                                replaceValue = enVars.get(enVarKey);
+                        for (Map.Entry entry : enVars.entrySet()) {
+                            if (entry.getKey().equals(expressionKey)) {
+                                replaceValue = (String)entry.getValue();
                             }
                         }
                     }
