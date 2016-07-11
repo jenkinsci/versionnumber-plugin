@@ -2,9 +2,9 @@
 	<p>
 		The version number format string is used to generate the version number.  It will be passed through unaltered,
 		except that any expression of the form ${variable_name, argument} will be replaced according to the table below.
-		Arguments are option, and unless specified below, the argument is a string of length N, and the
-		number will be padded with zeros until it's length N or greater.  For example, if the build day is 5, then
-		${BUILD_DAY, XX} would return 05.
+		Arguments are optional, and, unless otherwise specified in the table below, the argument is a string of length N,
+		and the number will be left-padded with zeros until its length equals N.  It will not be padded if its length
+		already exceeds N.  For example, if the build day is 5, then ${BUILD_DAY, XX} would return 05.
 	</p>
 	<p>
 		Any variable not recognized in the table below will be replaced by an environment variable of the same name.
@@ -13,17 +13,16 @@
 		an empty string.
 	</p>
 	<p>
-		
 		<table>
 			<tr>
-			    <td>
-			    BUILD_DATE_FORMATTED
-			    </td>
-			    <td>
-			    If the argument for this is a quotes-enclosed java date format string, then this will be replaced with
-			    the build date formatted with that string.  If there is no argument, then this will be the standard simple
-			    date format.
-			    </td>
+				<td>
+					BUILD_DATE_FORMATTED
+				</td>
+				<td>
+					If the argument for this is a quotes-enclosed java date format string, then this will be replaced with
+					the build date formatted with that string.  If there is no argument, then this will be the standard simple
+					date format.
+				</td>
 			</tr>
 			<tr>
 				<td>
@@ -116,8 +115,8 @@
 		</table>
 	</p>
 	<p>
-		Note: BUILDS_TODAY_Z, BUILDS_THIS_MONTH_Z, BUILDS_THIS_YEAR_Z and BUILDS_ALL_TIME_Z are zero-indexed
-		versions of the same variables above.  The override build numbers are NOT zero indexed, however, so if
-		you override Builds Today with 3, then BUILDS_TODAY_Z will be 2 for the next build.
+		Note: BUILDS_TODAY_Z, BUILDS_THIS_WEEK_Z, BUILDS_THIS_MONTH_Z, BUILDS_THIS_YEAR_Z and BUILDS_ALL_TIME_Z
+		are zero-indexed versions of the similar named variables from above.  The override build numbers are NOT
+		zero indexed, however, if you override Builds Today with 3, then BUILDS_TODAY_Z will be 2 for the next build.
 	</p>
 </div>
