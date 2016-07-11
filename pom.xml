@@ -11,7 +11,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.576</version> <!-- which version of Jenkins is this plugin built 
+    <version>1.609.1</version> <!-- which version of Jenkins is this plugin built
 			against? -->
   </parent>
 
@@ -69,6 +69,34 @@
             <url>http://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
+
+	<dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-api</artifactId>
+            <version>1.15</version>
+        </dependency>
+		<!-- Testing scope -->
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-aggregator</artifactId>
+			<version>1.14</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-support</artifactId>
+			<version>1.14</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency> <!-- Required by workflow-cps-global-lib (transitive of git-server) -->
+			<groupId>org.jenkins-ci.modules</groupId>
+			<artifactId>sshd</artifactId>
+			<version>1.6</version>
+			<scope>test</scope>
+		</dependency>
+    </dependencies>
 </project>  
   
 

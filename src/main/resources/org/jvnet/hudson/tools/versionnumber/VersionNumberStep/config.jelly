@@ -1,0 +1,15 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+	<f:entry title="${%Version Number String}" field="versionNumberString">
+		<f:textbox/>
+	</f:entry>
+	<f:entry title="${%Version Prefix}" field="versionPrefix">
+		<f:textbox/>
+	</f:entry>
+	<f:entry title="${%Project Start Date}" field="projectStartDate">
+		<f:textbox/>
+	</f:entry>
+	<f:entry title="${%Skip Failed Builds}" field="skipFailedBuilds">
+		<f:checkbox/>
+	</f:entry>
+</j:jelly>

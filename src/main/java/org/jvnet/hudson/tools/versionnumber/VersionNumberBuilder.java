@@ -103,7 +103,7 @@ public class VersionNumberBuilder extends BuildWrapper {
                                 boolean skipFailedBuilds,
                                 boolean useAsBuildDisplayName) {
         this.versionNumberString = versionNumberString;
-        this.projectStartDate = parseDate(projectStartDate);
+        this.projectStartDate = VersionNumberCommon.parseDate(projectStartDate);
         this.environmentVariableName = environmentVariableName;
         this.environmentPrefixVariable = environmentPrefixVariable;
         this.skipFailedBuilds = skipFailedBuilds;
@@ -142,14 +142,6 @@ public class VersionNumberBuilder extends BuildWrapper {
     
     public boolean getUseAsBuildDisplayName() {
         return this.useAsBuildDisplayName;
-    }
-    
-    private static Date parseDate(String dateString) {
-        try {
-            return defaultDateFormat.parse(dateString);
-        } catch (Exception e) {
-            return new Date(0);
-        }
     }
     
     /**
@@ -204,7 +196,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     public String getEnvironmentPrefixVariable() {
         return this.environmentPrefixVariable;
     }
-    private Run getPreviousBuildWithVersionNumber(AbstractBuild build, BuildListener listener) {
+    private Run getPreviousBuildWithVersionNumber(Run build, BuildListener listener) {
         String envPrefix;
         
         if (this.environmentPrefixVariable != null) {
@@ -220,99 +212,25 @@ public class VersionNumberBuilder extends BuildWrapper {
         } else {
             envPrefix = null;
         }
-        
-        // a build that fails early will not have a VersionNumberAction attached
-        Run prevBuild = build.getPreviousBuild();
-        
-        while (prevBuild != null) {
-            VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
-            
-            if (prevAction != null) {
-                if (envPrefix != null) {
-                    String version = prevAction.getVersionNumber();
-    
-                    if (version.startsWith(envPrefix)) {
-                        return prevBuild;
-                    }
-                } else {
-                    return prevBuild;
-                }
-            }
-            
-            prevBuild = prevBuild.getPreviousBuild();
-        }
-        
-        return null;
+
+        return VersionNumberCommon.getPreviousBuildWithVersionNumber(build, envPrefix);
     }
     
     @SuppressWarnings("unchecked")
-    private VersionNumberBuildInfo incBuild(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+    private VersionNumberBuildInfo incBuild(Run build, BuildListener listener) throws IOException, InterruptedException {
         Map<String, String> enVars = build.getEnvironment(listener);
         Run prevBuild = getPreviousBuildWithVersionNumber(build, listener);
-        int buildsToday = 1;
-        int buildsThisWeek = 1;
-        int buildsThisMonth = 1;
-        int buildsThisYear = 1;
-        int buildsAllTime = 1;
-        // this is what we add to the previous version number to get builds today / this week / this month / this year / all time
-        int buildInc = 1;
-        
-        if (prevBuild != null) {
-            // if we're skipping version numbers on failed builds and the last build failed...
-            if (skipFailedBuilds && !prevBuild.getResult().equals(Result.SUCCESS)) {
-                // don't increment
-                buildInc = 0;
-            }
-            // get the current build date and the previous build date
-            Calendar curCal = build.getTimestamp();
-            Calendar todayCal = prevBuild.getTimestamp();
-            
-            // get the previous build version number information
-            VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
-            VersionNumberBuildInfo info = prevAction.getInfo();
-
-            // increment builds per day
-            if (curCal.get(Calendar.DAY_OF_MONTH) == todayCal
-                    .get(Calendar.DAY_OF_MONTH)
-                    && curCal.get(Calendar.MONTH) == todayCal
-                            .get(Calendar.MONTH)
-                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-                buildsToday = info.getBuildsToday() + buildInc;
-            } else {
-                buildsToday = 1;
-            }
-
-            // increment builds per week
-            if (curCal.get(Calendar.WEEK_OF_YEAR) == todayCal.get(Calendar.WEEK_OF_YEAR)
-                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-                buildsThisWeek = info.getBuildsThisWeek() + buildInc;
-            } else {
-                buildsThisWeek = 1;
-            }
-
-            // increment builds per month
-            if (curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
-                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-                buildsThisMonth = info.getBuildsThisMonth() + buildInc;
-            } else {
-                buildsThisMonth = 1;
-            }
-
-            // increment builds per year
-            if (curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-                buildsThisYear = info.getBuildsThisYear() + buildInc;
-            } else {
-                buildsThisYear = 1;
-            }
-
-            // increment total builds
-            buildsAllTime = info.getBuildsAllTime() + buildInc;
-        }
+        VersionNumberBuildInfo incBuildInfo = VersionNumberCommon.incBuild(build, prevBuild, this.skipFailedBuilds);
         
         // have we overridden any of the version number info?  If so, set it up here
         boolean saveOverrides = false;
         Pattern pattern = Pattern.compile(ENV_VAR_PATTERN);
 
+        int buildsToday = incBuildInfo.getBuildsToday();
+        int buildsThisWeek = incBuildInfo.getBuildsThisWeek();
+        int buildsThisMonth = incBuildInfo.getBuildsThisMonth();
+        int buildsThisYear = incBuildInfo.getBuildsThisYear();
+        int buildsAllTime = incBuildInfo.getBuildsAllTime();
         if (this.oBuildsToday == null || !this.oBuildsToday.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
             // Just in case someone directly edited the config-file with invalid values.
@@ -421,116 +339,9 @@ public class VersionNumberBuilder extends BuildWrapper {
         
         // if we've used any of the overrides, reset them in the project
         if (saveOverrides) {
-            build.getProject().save();
+            build.getParent().save();
         }
         return new VersionNumberBuildInfo(buildsToday, buildsThisWeek, buildsThisMonth, buildsThisYear, buildsAllTime);
-    }
-    
-    private static String formatVersionNumber(String versionNumberFormatString,
-                                              Date projectStartDate,
-                                              VersionNumberBuildInfo info,
-                                              Map<String, String> enVars,
-                                              Calendar buildDate,
-                                              PrintStream log) {
-        String vnf = new String(versionNumberFormatString);
-        
-        int blockStart = 0;
-        do {
-            // blockStart and blockEnd define the starting and ending positions of the entire block, including
-            // the ${}
-            blockStart = vnf.indexOf("${");
-            if (blockStart >= 0) {
-                int blockEnd = vnf.indexOf("}", blockStart) + 1;
-                // if this is an unclosed block...
-                if (blockEnd <= blockStart) {
-                    // include everything up to the unclosed block, then exit
-                    vnf = vnf.substring(0, blockStart);
-                    break;
-                }
-                // command start/end include only the actual name of the variable to be replaced
-                int commandStart = blockStart + 2;
-                int commandEnd = blockEnd - 1;
-                int argumentStart = vnf.indexOf(",", blockStart);
-                int argumentEnd = 0;
-                if (argumentStart > 0 && argumentStart < blockEnd) {
-                    argumentEnd = blockEnd - 1;
-                    commandEnd = argumentStart;
-                }
-                String expressionKey = vnf.substring(commandStart, commandEnd);
-                String argumentString = argumentEnd > 0 ? vnf.substring(argumentStart + 1, argumentEnd).trim() : "";
-                String replaceValue = "";
-            
-                // we have the expression key; if it's any known key, fill in the value
-                if ("".equals(expressionKey)) {
-                    replaceValue = "";
-                } else if ("BUILD_DATE_FORMATTED".equals(expressionKey)) {
-                    DateFormat fmt = SimpleDateFormat.getInstance();
-                    if (!"".equals(argumentString)) {
-                        // this next line is a bit tricky, but basically, we're looking returning everything
-                        // inside a pair of quote marks; in other words, everything from after the first quote
-                        // to before the second
-                        String fmtString = argumentString.substring(argumentString.indexOf('"') + 1, argumentString.indexOf('"', argumentString.indexOf('"') + 1));
-                        fmt = new SimpleDateFormat(fmtString);
-                    }
-                    replaceValue = fmt.format(buildDate.getTime());
-                } else if ("BUILD_DAY".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.DAY_OF_MONTH)), argumentString.length());
-                } else if ("BUILD_WEEK".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.WEEK_OF_YEAR)), argumentString.length());
-                } else if ("BUILD_MONTH".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.MONTH) + 1), argumentString.length());
-                } else if ("BUILD_YEAR".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.YEAR)), argumentString.length());
-                } else if ("BUILDS_TODAY".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(info.getBuildsToday()), argumentString.length());
-                } else if ("BUILDS_THIS_WEEK".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(info.getBuildsThisWeek()), argumentString.length());
-                } else if ("BUILDS_THIS_MONTH".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(info.getBuildsThisMonth()), argumentString.length());
-                } else if ("BUILDS_THIS_YEAR".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(info.getBuildsThisYear()), argumentString.length());
-                } else if ("BUILDS_ALL_TIME".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(info.getBuildsAllTime()), argumentString.length());
-                } else if ("BUILDS_TODAY_Z".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(info.getBuildsToday() - 1), argumentString.length());
-                } else if ("BUILDS_THIS_MONTH_Z".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(info.getBuildsThisMonth() - 1), argumentString.length());
-                } else if ("BUILDS_THIS_YEAR_Z".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(info.getBuildsThisYear() - 1), argumentString.length());
-                } else if ("BUILDS_ALL_TIME_Z".equals(expressionKey)) {
-                    replaceValue = sizeTo(Integer.toString(info.getBuildsAllTime() - 1), argumentString.length());
-                } else if ("MONTHS_SINCE_PROJECT_START".equals(expressionKey)) {
-                    Calendar projectStartCal = Calendar.getInstance();
-                    projectStartCal.setTime(projectStartDate);
-                    int monthsSinceStart = buildDate.get(Calendar.MONTH) - projectStartCal.get(Calendar.MONTH);
-                    monthsSinceStart += (buildDate.get(Calendar.YEAR) - projectStartCal.get(Calendar.YEAR)) * 12;
-                    replaceValue = sizeTo(Integer.toString(monthsSinceStart), argumentString.length());
-                } else if ("YEARS_SINCE_PROJECT_START".equals(expressionKey)) {
-                    Calendar projectStartCal = Calendar.getInstance();
-                    projectStartCal.setTime(projectStartDate);
-                    int yearsSinceStart = buildDate.get(Calendar.YEAR) - projectStartCal.get(Calendar.YEAR);
-                    replaceValue = sizeTo(Integer.toString(yearsSinceStart), argumentString.length());
-                }
-                // if it's not one of the defined values, check the environment variables
-                else {
-                    for (String enVarKey : enVars.keySet()) {
-                        if (enVarKey.equals(expressionKey)) {
-                            replaceValue = enVars.get(enVarKey);
-                        }
-                    }
-                }
-                vnf = vnf.substring(0, blockStart) + replaceValue + vnf.substring(blockEnd, vnf.length());
-            }
-        } while (blockStart >= 0);
-        
-        return vnf;
-    }
-    
-    private static String sizeTo(String s, int length) {
-        while (s.length() < length) {
-            s = "0" + s;
-        }
-        return s;
     }
     
     @SuppressWarnings("unchecked") @Override
@@ -538,13 +349,11 @@ public class VersionNumberBuilder extends BuildWrapper {
         String formattedVersionNumber = "";
         try {
             VersionNumberBuildInfo info = incBuild(build, listener);
-            formattedVersionNumber = formatVersionNumber(this.versionNumberString,
+            formattedVersionNumber = VersionNumberCommon.formatVersionNumber(this.versionNumberString,
                                                          this.projectStartDate,
                                                          info,
                                                          build.getEnvironment(listener),
-                                                         build.getTimestamp(),
-                                                         listener.getLogger()
-                                                         );
+                                                         build.getTimestamp());
             build.addAction(new VersionNumberAction(info, formattedVersionNumber));
             if (useAsBuildDisplayName) {
                 build.setDisplayName(formattedVersionNumber);
@@ -624,7 +433,7 @@ public class VersionNumberBuilder extends BuildWrapper {
          *      This receives the current value of the field.
          */
         public FormValidation doCheckProjectStartDate(@QueryParameter final String value)  {
-            if (value.length() > 0 && parseDate(value).compareTo(new Date(0)) == 0) {
+            if (value.length() > 0 && VersionNumberCommon.parseDate(value).compareTo(new Date(0)) == 0) {
                 return FormValidation.error("Valid dates are in the format yyyy-mm-dd");
             } else {
                 return FormValidation.ok();
