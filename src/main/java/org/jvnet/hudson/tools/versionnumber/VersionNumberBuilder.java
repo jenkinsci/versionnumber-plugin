@@ -20,7 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-import java.util.logging.Logger;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,7 +73,8 @@ public class VersionNumberBuilder extends BuildWrapper {
     private String oBuildsAllTime;
     
     private boolean skipFailedBuilds;
-    private boolean useAsBuildDisplayName; 
+    private boolean useAsBuildDisplayName;
+    private boolean formatTimeInUtc;
     
     public VersionNumberBuilder(String versionNumberString,
             String projectStartDate,
@@ -87,7 +88,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             boolean skipFailedBuilds) {
         this(versionNumberString, projectStartDate, environmentVariableName,
                 environmentPrefixVariable, buildsToday, buildsThisWeek, buildsThisMonth,
-                buildsThisYear, buildsAllTime, skipFailedBuilds, false);
+                buildsThisYear, buildsAllTime, skipFailedBuilds, false, false);
     }
     
     @DataBoundConstructor
@@ -101,13 +102,15 @@ public class VersionNumberBuilder extends BuildWrapper {
                                 String buildsThisYear,
                                 String buildsAllTime,
                                 boolean skipFailedBuilds,
-                                boolean useAsBuildDisplayName) {
+                                boolean useAsBuildDisplayName,
+                                boolean formatTimeInUtc) {
         this.versionNumberString = versionNumberString;
         this.projectStartDate = parseDate(projectStartDate);
         this.environmentVariableName = environmentVariableName;
         this.environmentPrefixVariable = environmentPrefixVariable;
         this.skipFailedBuilds = skipFailedBuilds;
         this.useAsBuildDisplayName = useAsBuildDisplayName;
+        this.formatTimeInUtc = formatTimeInUtc;
         
         this.oBuildsToday = makeValid(buildsToday);
         this.oBuildsThisWeek = makeValid(buildsThisWeek);
@@ -142,6 +145,10 @@ public class VersionNumberBuilder extends BuildWrapper {
     
     public boolean getUseAsBuildDisplayName() {
         return this.useAsBuildDisplayName;
+    }
+
+    public boolean getFormatTimeInUtc() {
+        return this.formatTimeInUtc;
     }
     
     private static Date parseDate(String dateString) {
@@ -425,9 +432,10 @@ public class VersionNumberBuilder extends BuildWrapper {
         }
         return new VersionNumberBuildInfo(buildsToday, buildsThisWeek, buildsThisMonth, buildsThisYear, buildsAllTime);
     }
-    
+
     private static String formatVersionNumber(String versionNumberFormatString,
                                               Date projectStartDate,
+                                              boolean formatTimeInUtc,
                                               VersionNumberBuildInfo info,
                                               Map<String, String> enVars,
                                               Calendar buildDate,
@@ -471,6 +479,9 @@ public class VersionNumberBuilder extends BuildWrapper {
                         // to before the second
                         String fmtString = argumentString.substring(argumentString.indexOf('"') + 1, argumentString.indexOf('"', argumentString.indexOf('"') + 1));
                         fmt = new SimpleDateFormat(fmtString);
+                    }
+                    if (formatTimeInUtc) {
+                        fmt.setTimeZone(TimeZone.getTimeZone("UTC"));
                     }
                     replaceValue = fmt.format(buildDate.getTime());
                 } else if ("BUILD_DAY".equals(expressionKey)) {
@@ -540,6 +551,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             VersionNumberBuildInfo info = incBuild(build, listener);
             formattedVersionNumber = formatVersionNumber(this.versionNumberString,
                                                          this.projectStartDate,
+                                                         this.formatTimeInUtc,
                                                          info,
                                                          build.getEnvironment(listener),
                                                          build.getTimestamp(),

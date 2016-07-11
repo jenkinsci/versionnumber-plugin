@@ -14,6 +14,10 @@ import hudson.slaves.EnvironmentVariablesNodeProperty;
 import java.io.File;
 import java.io.IOException;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 public class VersionNumberBuilderTest extends HudsonTestCase {
@@ -103,19 +107,33 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
     public void testUseAsBuildDisplayName() throws Exception {
         FreeStyleProject job = createFreeStyleProject("versionNumberJob");
         VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
-                "1.0.${BUILDS_ALL_TIME}", null, null, null, null, null, null, null, null, false, true);
+                "1.0.${BUILDS_ALL_TIME}", null, null, null, null, null, null, null, null, false, true, false);
         job.getBuildWrappersList().add(versionNumberBuilder);
         FreeStyleBuild build = buildAndAssertSuccess(job);
         assertEquals("1.0.1", build.getDisplayName());
         build = buildAndAssertSuccess(job);
         assertEquals("1.0.2", build.getDisplayName());
     }
+
+    public void testUseUtcTimeZone() throws Exception {
+        String dateFormatPattern = "yyyyMMddHH";
+        FreeStyleProject job = createFreeStyleProject("versionNumberJob");
+        VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
+                "${BUILD_DATE_FORMATTED, \"" + dateFormatPattern + "\"}", null, null, null, null, null, null, null, null, false, true, true);
+        job.getBuildWrappersList().add(versionNumberBuilder);
+        FreeStyleBuild build = buildAndAssertSuccess(job);
+
+        SimpleDateFormat format = new SimpleDateFormat(dateFormatPattern);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String formattedBuildTimestamp = format.format(build.getTimestamp().getTime());
+        assertEquals(formattedBuildTimestamp, build.getDisplayName());
+    }
     
     public void testValueFromEnvironmentVariable() throws Exception {
         FreeStyleProject job = createFreeStyleProject("versionNumberJob");
         VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
                 "${BUILDS_TODAY}.${BUILDS_THIS_WEEK}.${BUILDS_THIS_MONTH}.${BUILDS_THIS_YEAR}.${BUILDS_ALL_TIME}",
-                null, null, null, "${ENVVAL_OF_TODAY}", "${ENVVAL_OF_THIS_WEEK}", "${ENVVAL_OF_THIS_MONTH}", "${ENVVAL_OF_THIS_YEAR}", "${ENVVAL_OF_ALL_TIME}", false, true);
+                null, null, null, "${ENVVAL_OF_TODAY}", "${ENVVAL_OF_THIS_WEEK}", "${ENVVAL_OF_THIS_MONTH}", "${ENVVAL_OF_THIS_YEAR}", "${ENVVAL_OF_ALL_TIME}", false, true, false);
         
         EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
         EnvVars envVars = prop.getEnvVars();
