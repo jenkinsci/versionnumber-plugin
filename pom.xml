@@ -1,18 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <groupId>org.jvnet.hudson.tools</groupId>
   <artifactId>versionnumber</artifactId>
   <packaging>hpi</packaging>
   <version>1.6.1-SNAPSHOT</version>
   <name>Version Number Plug-In</name>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Version+Number+Plugin</url>
-  
+
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.609.1</version> <!-- which version of Jenkins is this plugin built
-			against? -->
+    <version>1.609.1</version> <!-- which version of Jenkins is this plugin built against? -->
   </parent>
 
   <licenses>
@@ -26,7 +25,7 @@
     <developer>
       <id>bahadir</id>
       <name>Deniz Bahadir</name>
-      <email>versionnumber-plugin.jenkins [at] deniz.bahadir.email</email>
+      <email>versionnumber-plugin.jenkins[at]deniz.bahadir.email</email>
       <timezone>Europe/Berlin</timezone>
     </developer>
     <developer>
@@ -53,50 +52,48 @@
     <developerConnection>scm:git:git@github.com:jenkinsci/versionnumber-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/versionnumber-plugin</url>
     <tag>HEAD</tag>
-  </scm>  
-  
+  </scm>
 
-    <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </repository>
-    </repositories>
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>http://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>http://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
 
-	<dependencies>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins.workflow</groupId>
-            <artifactId>workflow-api</artifactId>
-            <version>1.15</version>
-        </dependency>
-		<!-- Testing scope -->
-		<dependency>
-			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<artifactId>workflow-aggregator</artifactId>
-			<version>1.14</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<artifactId>workflow-support</artifactId>
-			<version>1.14</version>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency> <!-- Required by workflow-cps-global-lib (transitive of git-server) -->
-			<groupId>org.jenkins-ci.modules</groupId>
-			<artifactId>sshd</artifactId>
-			<version>1.6</version>
-			<scope>test</scope>
-		</dependency>
-    </dependencies>
-</project>  
-  
+  <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-api</artifactId>
+      <version>1.15</version>
+    </dependency>
+    <!-- Testing scope -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-aggregator</artifactId>
+      <version>1.14</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-support</artifactId>
+      <version>1.14</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency> <!-- Required by workflow-cps-global-lib (transitive of git-server) -->
+      <groupId>org.jenkins-ci.modules</groupId>
+      <artifactId>sshd</artifactId>
+      <version>1.6</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>
 
