@@ -515,7 +515,10 @@ public class VersionNumberBuilder extends BuildWrapper {
                 else {
                     for (String enVarKey : enVars.keySet()) {
                         if (enVarKey.equals(expressionKey)) {
-                            replaceValue = enVars.get(enVarKey);
+                            //Careful not to resolve the variable to itself, otherwise the plugin will become stuck indefinately.
+                            if(!expressionKey.equals(enVars.get(enVarKey)) && !enVars.get(enVarKey).equals("${"+enVarKey+"}")) {
+                                replaceValue = enVars.get(enVarKey);
+                            }
                         }
                     }
                 }
