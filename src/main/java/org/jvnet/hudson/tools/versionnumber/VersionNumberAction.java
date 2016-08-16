@@ -25,7 +25,6 @@ public class VersionNumberAction implements Action {
 	return this.versionNumber;
     }
 
-
     @Override
     public String getDisplayName() {
         return "Version " + this.versionNumber;
