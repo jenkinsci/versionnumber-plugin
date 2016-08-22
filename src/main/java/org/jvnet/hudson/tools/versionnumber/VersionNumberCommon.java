@@ -50,7 +50,7 @@ public class VersionNumberCommon {
             // if we're skipping version numbers on failed builds and the last build failed...
             if (skipFailedBuilds) {
                 Result result = prevBuild.getResult();
-                if (result != null && result.equals(Result.SUCCESS)) {
+                if (result != null && ! result.equals(Result.SUCCESS)) {
                     // don't increment
                     buildInc = 0;
                 }
