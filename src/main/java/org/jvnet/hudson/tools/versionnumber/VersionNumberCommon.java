@@ -64,10 +64,8 @@ public class VersionNumberCommon {
             VersionNumberBuildInfo info = prevAction.getInfo();
 
             // increment builds per day
-            if (curCal.get(Calendar.DAY_OF_MONTH) == todayCal
-                    .get(Calendar.DAY_OF_MONTH)
-                    && curCal.get(Calendar.MONTH) == todayCal
-                            .get(Calendar.MONTH)
+            if (curCal.get(Calendar.DAY_OF_MONTH) == todayCal.get(Calendar.DAY_OF_MONTH)
+                    && curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
                     && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
                 buildsToday = info.getBuildsToday() + buildInc;
             } else {
@@ -143,8 +141,10 @@ public class VersionNumberCommon {
                                              VersionNumberBuildInfo info,
                                              Map<String, String> enVars,
                                              Calendar buildDate) {
-        String vnf = versionNumberFormatString;
+        // Expand all environment-variables in the format-string.
+        String vnf = new EnvVars(enVars).expand(versionNumberFormatString);
         
+        // Try to expand all remaining (version-number specific) variables.
         int blockStart = 0;
         do {
             // blockStart and blockEnd define the starting and ending positions of the entire block, including
