@@ -58,8 +58,6 @@ import org.kohsuke.stapler.StaplerRequest;
 public class VersionNumberBuilder extends BuildWrapper {
     
     private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
-    // Pattern:   ${VAR_NAME} or $VAR_NAME
-    private static final String ENV_VAR_PATTERN = "^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$";
 
     private final String versionNumberString;
     private final Date projectStartDate;
@@ -109,11 +107,11 @@ public class VersionNumberBuilder extends BuildWrapper {
         this.skipFailedBuilds = skipFailedBuilds;
         this.useAsBuildDisplayName = useAsBuildDisplayName;
         
-        this.oBuildsToday = makeValid(buildsToday);
-        this.oBuildsThisWeek = makeValid(buildsThisWeek);
-        this.oBuildsThisMonth = makeValid(buildsThisMonth);
-        this.oBuildsThisYear = makeValid(buildsThisYear);
-        this.oBuildsAllTime = makeValid(buildsAllTime);
+        this.oBuildsToday = VersionNumberCommon.makeValid(buildsToday);
+        this.oBuildsThisWeek = VersionNumberCommon.makeValid(buildsThisWeek);
+        this.oBuildsThisMonth = VersionNumberCommon.makeValid(buildsThisMonth);
+        this.oBuildsThisYear = VersionNumberCommon.makeValid(buildsThisYear);
+        this.oBuildsAllTime = VersionNumberCommon.makeValid(buildsAllTime);
     }
     
     public String getBuildsToday() {
@@ -143,43 +141,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     public boolean getUseAsBuildDisplayName() {
         return this.useAsBuildDisplayName;
     }
-    
-    /**
-     * Checks if the given string contains a valid value and returns that
-     * value again if it is valid or returns an empty string if it is not. A
-     * valid value encoded in the string must either be a (positive) number,
-     * convertible to an integer or a reference to an environment-variable in
-     * the form <code>${VARIABLE_NAME}</code> or <code>$VARIABLE_NAME</code>.
-     * @param buildNum The (user-provided) string which should either contain
-     *                 a number or a reference to an environment-variable.
-     * @return The given <a>buildNum</a> if valid or an empty string.
-     */
-    private static String makeValid(String buildNum) {
-        if (buildNum == null) return "";  // Return the default-value.
-        try {
-            buildNum = buildNum.trim();
-            // If we got a valid integer the following conversion will
-            // succeed without an exception.
-            Integer intVal = Integer.valueOf(buildNum);
-            if (intVal < 0)
-                return "";  // Negative numbers are not allowed.
-            else
-                return intVal.toString();
-        } catch (Exception e) {
-            // Obviously, we did not receive a valid integer as override.
-            // Is it a reference to an environment-variable?
-            if (buildNum.matches(ENV_VAR_PATTERN)) {
-                // Yes, so return it as-is and only retrieve its value when
-                // the value must be accessed (to always get the most
-                // up-to-date value).
-                return buildNum;
-            } else {
-                // No, so it seems to be junk. Just return the default-value.
-                return "";
-            }
-        }
-    }
-    
+        
     /**
      * We'll use this from the <tt>config.jelly</tt>.
      */
@@ -219,13 +181,13 @@ public class VersionNumberBuilder extends BuildWrapper {
     
     @SuppressWarnings("unchecked")
     private VersionNumberBuildInfo incBuild(Run build, BuildListener listener) throws IOException, InterruptedException {
-        Map<String, String> enVars = build.getEnvironment(listener);
+        EnvVars enVars = build.getEnvironment(listener);
         Run prevBuild = getPreviousBuildWithVersionNumber(build, listener);
-        VersionNumberBuildInfo incBuildInfo = VersionNumberCommon.incBuild(build, prevBuild, this.skipFailedBuilds);
+        VersionNumberBuildInfo incBuildInfo = VersionNumberCommon.incBuild(build, enVars, prevBuild, this.skipFailedBuilds, this.oBuildsAllTime);
         
         // have we overridden any of the version number info?  If so, set it up here
         boolean saveOverrides = false;
-        Pattern pattern = Pattern.compile(ENV_VAR_PATTERN);
+        Pattern pattern = Pattern.compile(VersionNumberCommon.ENV_VAR_PATTERN);
 
         int buildsToday = incBuildInfo.getBuildsToday();
         int buildsThisWeek = incBuildInfo.getBuildsThisWeek();
@@ -235,10 +197,10 @@ public class VersionNumberBuilder extends BuildWrapper {
         if (this.oBuildsToday == null || !this.oBuildsToday.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
             // Just in case someone directly edited the config-file with invalid values.
-            oBuildsToday = makeValid(oBuildsToday);
+            oBuildsToday = VersionNumberCommon.makeValid(oBuildsToday);
             int newVal = buildsToday;
             try {
-                if (!oBuildsToday.matches(ENV_VAR_PATTERN)) {
+                if (!oBuildsToday.matches(VersionNumberCommon.ENV_VAR_PATTERN)) {
                     newVal = Integer.parseInt(oBuildsToday);
                     oBuildsToday = "";  // Reset!
                 } else {
@@ -256,10 +218,10 @@ public class VersionNumberBuilder extends BuildWrapper {
         if (this.oBuildsThisWeek == null || !this.oBuildsThisWeek.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
             // Just in case someone directly edited the config-file with invalid values.
-            oBuildsThisWeek = makeValid(oBuildsThisWeek);
+            oBuildsThisWeek = VersionNumberCommon.makeValid(oBuildsThisWeek);
             int newVal = buildsThisWeek;
             try {
-                if (!oBuildsThisWeek.matches(ENV_VAR_PATTERN)) {
+                if (!oBuildsThisWeek.matches(VersionNumberCommon.ENV_VAR_PATTERN)) {
                     newVal = Integer.parseInt(oBuildsThisWeek);
                     oBuildsThisWeek = "";  // Reset!
                 } else {
@@ -277,10 +239,10 @@ public class VersionNumberBuilder extends BuildWrapper {
         if (this.oBuildsThisMonth == null || !this.oBuildsThisMonth.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
             // Just in case someone directly edited the config-file with invalid values.
-            oBuildsThisMonth = makeValid(oBuildsThisMonth);
+            oBuildsThisMonth = VersionNumberCommon.makeValid(oBuildsThisMonth);
             int newVal = buildsThisMonth;
             try {
-                if (!oBuildsThisMonth.matches(ENV_VAR_PATTERN)) {
+                if (!oBuildsThisMonth.matches(VersionNumberCommon.ENV_VAR_PATTERN)) {
                     newVal = Integer.parseInt(oBuildsThisMonth);
                     oBuildsThisMonth = "";  // Reset!
                 } else {
@@ -298,10 +260,10 @@ public class VersionNumberBuilder extends BuildWrapper {
         if (this.oBuildsThisYear == null || !this.oBuildsThisYear.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
             // Just in case someone directly edited the config-file with invalid values.
-            oBuildsThisYear = makeValid(oBuildsThisYear);
+            oBuildsThisYear = VersionNumberCommon.makeValid(oBuildsThisYear);
             int newVal = buildsThisYear;
             try {
-                if (!oBuildsThisYear.matches(ENV_VAR_PATTERN)) {
+                if (!oBuildsThisYear.matches(VersionNumberCommon.ENV_VAR_PATTERN)) {
                     newVal = Integer.parseInt(oBuildsThisYear);
                     oBuildsThisYear = "";  // Reset!
                 } else {
@@ -316,26 +278,9 @@ public class VersionNumberBuilder extends BuildWrapper {
             }
             buildsThisYear = ((newVal >= 0) ? newVal : buildsThisYear);
         }
+        
         if (this.oBuildsAllTime == null || !this.oBuildsAllTime.equals("")) {
             saveOverrides = true;  // Always need to save if not empty!
-            // Just in case someone directly edited the config-file with invalid values.
-            oBuildsAllTime = makeValid(oBuildsAllTime);
-            int newVal = buildsAllTime;
-            try {
-                if (!oBuildsAllTime.matches(ENV_VAR_PATTERN)) {
-                    newVal = Integer.parseInt(oBuildsAllTime);
-                    oBuildsAllTime = "";  // Reset!
-                } else {
-                    Matcher m = pattern.matcher(oBuildsAllTime);
-                    if (m.matches()) {
-                      String varName = (m.group(1) != null) ? m.group(1) : m.group(2);
-                      newVal = Integer.parseInt(enVars.get(varName));
-                    }
-                }
-            } catch (Exception e) {
-                // Invalid value, so do not override!
-            }
-            buildsAllTime = ((newVal >= 0) ? newVal : buildsAllTime);
         }
         
         // if we've used any of the overrides, reset them in the project

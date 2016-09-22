@@ -122,4 +122,61 @@ public class VersionNumberStepTest {
 			}
 		});
 	}
+	
+	@Test
+	public void BuildsAllTimeFromEnvironmentVariable() {
+		story.addStep(new Statement() {
+			@Override
+			public void evaluate() throws Throwable {
+				WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
+				p.setDefinition(new CpsFlowDefinition(
+				        "withEnv(['NEXT_BUILD_NUMBER=5']) {\n" +
+						"def versionNumber = VersionNumber versionNumberString: '${BUILDS_ALL_TIME}', versionPrefix: '1.0.', buildsAllTime: '${NEXT_BUILD_NUMBER}'\n" +
+						"   echo \"VersionNumber: ${versionNumber}\"\n" +
+                        "}"
+				));
+				WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
+				story.j.waitForCompletion(b1);
+				story.j.assertBuildStatus(Result.SUCCESS, b1);
+				story.j.assertLogContains("VersionNumber: 1.0.5", b1);
+			}
+		});
+	}
+
+	@Test
+	public void BuildsAllTimeFromEnvironmentVariableThatIsMissing() {
+		story.addStep(new Statement() {
+			@Override
+			public void evaluate() throws Throwable {
+				WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
+				p.setDefinition(new CpsFlowDefinition(
+						"def versionNumber = VersionNumber versionNumberString: '${BUILDS_ALL_TIME}', versionPrefix: '1.0.', buildsAllTime: '${NEXT_BUILD_NUMBER}'\n" +
+						"   echo \"VersionNumber: ${versionNumber}\"\n"
+				));
+				WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
+				story.j.waitForCompletion(b1);
+				story.j.assertBuildStatus(Result.SUCCESS, b1);
+				story.j.assertLogContains("VersionNumber: 1.0.1", b1);
+			}
+		});
+	}
+	
+	@Test
+	public void BuildsAllTimeFromDirectOverride() {
+		story.addStep(new Statement() {
+			@Override
+			public void evaluate() throws Throwable {
+				WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
+				p.setDefinition(new CpsFlowDefinition(
+						"def versionNumber = VersionNumber versionNumberString: '${BUILDS_ALL_TIME}', versionPrefix: '1.0.', buildsAllTime: '12'\n" +
+						"   echo \"VersionNumber: ${versionNumber}\"\n"
+				));
+				WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
+				story.j.waitForCompletion(b1);
+				story.j.assertBuildStatus(Result.SUCCESS, b1);
+				story.j.assertLogContains("VersionNumber: 1.0.12", b1);
+			}
+		});
+	}
+	
 }

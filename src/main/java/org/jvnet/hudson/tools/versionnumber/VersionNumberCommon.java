@@ -37,7 +37,11 @@ public class VersionNumberCommon {
     
     private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
     
-    public static VersionNumberBuildInfo incBuild(Run build, Run prevBuild, boolean skipFailedBuilds) {
+    // Pattern:   ${VAR_NAME} or $VAR_NAME
+    public static final String ENV_VAR_PATTERN = "^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$";
+    
+    public static VersionNumberBuildInfo incBuild(Run build, EnvVars environmentVariables,
+    		Run prevBuild, boolean skipFailedBuilds, String overrideBuildsAllTime) {
         int buildsToday = 1;
         int buildsThisWeek = 1;
         int buildsThisMonth = 1;
@@ -45,6 +49,17 @@ public class VersionNumberCommon {
         int buildsAllTime = 1;
         // this is what we add to the previous version number to get builds today / this week / this month / this year / all time
         int buildInc = 1;
+
+        /*
+         * If we're overriding builds all time, figure it out here.  If we don't
+         * it will be business as usual and we'll increment as needed.
+         * 
+         * It's necessary to do this here in case you want to override the build
+         * number on the very first build.
+         */
+        if (isValidOverrideBuildsAllTime(environmentVariables, overrideBuildsAllTime)) {
+        	buildsAllTime = getOverrideBuildsAllTime(environmentVariables, overrideBuildsAllTime);
+        }
         
         if (prevBuild != null) {
             // if we're skipping version numbers on failed builds and the last build failed...
@@ -95,8 +110,18 @@ public class VersionNumberCommon {
                 buildsThisYear = 1;
             }
 
-            // increment total builds
-            buildsAllTime = info.getBuildsAllTime() + buildInc;
+            /*
+			 * If there's a valid override, we'll keep it, otherwise increment as normal.
+			 * 
+			 * TODO:  Not totally thrilled with this solution, but....
+			 * 
+			 * It's necessary to test this again here since we don't want to increment
+			 * the number if we've already resolved this from the beginning of the method.
+             */
+            if (!isValidOverrideBuildsAllTime(environmentVariables, overrideBuildsAllTime)) {
+	            // increment total builds
+	            buildsAllTime = info.getBuildsAllTime() + buildInc;
+            }
         }
         
         return new VersionNumberBuildInfo(buildsToday, buildsThisWeek, buildsThisMonth, buildsThisYear, buildsAllTime);
@@ -136,7 +161,63 @@ public class VersionNumberCommon {
         }
     }
     
-    public static String formatVersionNumber(String versionNumberFormatString,
+    /**
+     * Returns true if the passed builds all time value resolves to a value greater
+     * than or equal to 0 based on either an environment variable or direct integer
+     * parsing.
+     * 
+     * @param envVars
+     * @param buildsAllTime
+     * @return
+     */
+    private static boolean isValidOverrideBuildsAllTime(EnvVars envVars, String buildsAllTime) {
+    	boolean result = false;
+    	
+    	if (buildsAllTime != null && !buildsAllTime.equals("")) {
+    		result = getOverrideBuildsAllTime(envVars, buildsAllTime) != null;
+    	}
+    	
+    	return result;
+    }
+    
+    /**
+     * Given an override builds all time, first check if it is an environment variable that
+     * resolves, otherwise try converting directly to an int.
+     * 
+     * @param envVars The environment variables to the build.
+     * @param buildsAllTime A string either resolving to an int or an environment variable that can provide the next value.
+     * @return The new build number or null if we can't resolve as a number greater than or equal to 0
+     */
+    private static Integer getOverrideBuildsAllTime(EnvVars envVars, String buildsAllTime) {
+    	Integer result = null;
+        Pattern pattern = Pattern.compile(VersionNumberCommon.ENV_VAR_PATTERN);
+
+		// Just in case someone directly edited the config-file with invalid values.
+		buildsAllTime = makeValid(buildsAllTime);
+
+		try {
+		    if (!buildsAllTime.matches(VersionNumberCommon.ENV_VAR_PATTERN)) {
+		        result = Integer.parseInt(buildsAllTime);
+		        buildsAllTime = "";  // Reset!
+		    } else {
+		        Matcher m = pattern.matcher(buildsAllTime);
+		        if (m.matches()) {
+		          String varName = (m.group(1) != null) ? m.group(1) : m.group(2);
+		          result = Integer.parseInt(envVars.get(varName));
+		        }
+		    }
+		} catch (Exception e) {
+		    // Invalid value, so do not override!
+		}
+		
+		if (result == null || result < 0) {
+			result = null;
+		}
+
+		return result;
+    }
+    
+	public static String formatVersionNumber(String versionNumberFormatString,
                                              Date projectStartDate,
                                              VersionNumberBuildInfo info,
                                              Map<String, String> enVars,
@@ -237,6 +318,42 @@ public class VersionNumberCommon {
         } while (blockStart >= 0);
         
         return vnf;
+    }
+    
+    /**
+     * Checks if the given string contains a valid value and returns that
+     * value again if it is valid or returns an empty string if it is not. A
+     * valid value encoded in the string must either be a (positive) number,
+     * convertible to an integer or a reference to an environment-variable in
+     * the form <code>${VARIABLE_NAME}</code> or <code>$VARIABLE_NAME</code>.
+     * @param buildNum The (user-provided) string which should either contain
+     *                 a number or a reference to an environment-variable.
+     * @return The given <a>buildNum</a> if valid or an empty string.
+     */
+    public static String makeValid(String buildNum) {
+        if (buildNum == null) return "";  // Return the default-value.
+        try {
+            buildNum = buildNum.trim();
+            // If we got a valid integer the following conversion will
+            // succeed without an exception.
+            Integer intVal = Integer.valueOf(buildNum);
+            if (intVal < 0)
+                return "";  // Negative numbers are not allowed.
+            else
+                return intVal.toString();
+        } catch (Exception e) {
+            // Obviously, we did not receive a valid integer as override.
+            // Is it a reference to an environment-variable?
+            if (buildNum.matches(VersionNumberCommon.ENV_VAR_PATTERN)) {
+                // Yes, so return it as-is and only retrieve its value when
+                // the value must be accessed (to always get the most
+                // up-to-date value).
+                return buildNum;
+            } else {
+                // No, so it seems to be junk. Just return the default-value.
+                return "";
+            }
+        }
     }
     
     private static String sizeTo(String s, int length) {
