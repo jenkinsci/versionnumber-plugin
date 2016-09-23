@@ -1,34 +1,13 @@
 package org.jvnet.hudson.tools.versionnumber;
 
-import hudson.Extension;
-import hudson.EnvVars;
-import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Run;
-import hudson.tasks.BuildWrapper;
-import hudson.tasks.BuildWrapperDescriptor;
-import hudson.tasks.Builder;
-import hudson.util.FormValidation;
-
-import java.io.IOException;
-import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import net.sf.json.JSONObject;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import hudson.EnvVars;
+import hudson.model.Run;
 
 /**
  * Common methods used by freestyle and pipeline jobs.
@@ -36,69 +15,20 @@ import org.kohsuke.stapler.StaplerRequest;
 public class VersionNumberCommon {
     
     private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+
+    // Pattern:   ${VAR_NAME} or $VAR_NAME
+    public static final String ENV_VAR_PATTERN = "^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$";
     
-    public static VersionNumberBuildInfo incBuild(Run build, Run prevBuild, boolean skipFailedBuilds) {
-        int buildsToday = 1;
-        int buildsThisWeek = 1;
-        int buildsThisMonth = 1;
-        int buildsThisYear = 1;
-        int buildsAllTime = 1;
-        // this is what we add to the previous version number to get builds today / this week / this month / this year / all time
-        int buildInc = 1;
-        
-        if (prevBuild != null) {
-            // if we're skipping version numbers on failed builds and the last build failed...
-            if (skipFailedBuilds) {
-                Result result = prevBuild.getResult();
-                if (result != null && ! result.equals(Result.SUCCESS)) {
-                    // don't increment
-                    buildInc = 0;
-                }
-            }
-            // get the current build date and the previous build date
-            Calendar curCal = build.getTimestamp();
-            Calendar todayCal = prevBuild.getTimestamp();
-            
-            // get the previous build version number information
-            VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
-            VersionNumberBuildInfo info = prevAction.getInfo();
-
-            // increment builds per day
-            if (curCal.get(Calendar.DAY_OF_MONTH) == todayCal.get(Calendar.DAY_OF_MONTH)
-                    && curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
-                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-                buildsToday = info.getBuildsToday() + buildInc;
-            } else {
-                buildsToday = 1;
-            }
-
-            // increment builds per week
-            if (curCal.get(Calendar.WEEK_OF_YEAR) == todayCal.get(Calendar.WEEK_OF_YEAR)
-                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-                buildsThisWeek = info.getBuildsThisWeek() + buildInc;
-            } else {
-                buildsThisWeek = 1;
-            }
-
-            // increment builds per month
-            if (curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
-                    && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-                buildsThisMonth = info.getBuildsThisMonth() + buildInc;
-            } else {
-                buildsThisMonth = 1;
-            }
-
-            // increment builds per year
-            if (curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-                buildsThisYear = info.getBuildsThisYear() + buildInc;
-            } else {
-                buildsThisYear = 1;
-            }
-
-            // increment total builds
-            buildsAllTime = info.getBuildsAllTime() + buildInc;
-        }
-        
+    public static VersionNumberBuildInfo incBuild(Run build, EnvVars vars,
+    		Run prevBuild, boolean skipFailedBuilds, String overrideBuildsToday, String overrideBuildsThisWeek,
+    		String overrideBuildsThisMonth, String overrideBuildsThisYear, String overrideBuildsAllTime) {
+    	
+    	int buildsToday = new BuildsTodayGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsToday);
+    	int buildsThisWeek = new BuildsThisWeekGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisWeek);
+    	int buildsThisMonth = new BuildsThisMonthGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisMonth);
+    	int buildsThisYear = new BuildsThisYearGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisYear);
+    	int buildsAllTime = new BuildsAllTimeGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsAllTime);
+                
         return new VersionNumberBuildInfo(buildsToday, buildsThisWeek, buildsThisMonth, buildsThisYear, buildsAllTime);
     }
     
@@ -135,8 +65,8 @@ public class VersionNumberCommon {
             return new Date(0);
         }
     }
-    
-    public static String formatVersionNumber(String versionNumberFormatString,
+        
+	public static String formatVersionNumber(String versionNumberFormatString,
                                              Date projectStartDate,
                                              VersionNumberBuildInfo info,
                                              Map<String, String> enVars,
@@ -237,6 +167,42 @@ public class VersionNumberCommon {
         } while (blockStart >= 0);
         
         return vnf;
+    }
+    
+    /**
+     * Checks if the given string contains a valid value and returns that
+     * value again if it is valid or returns an empty string if it is not. A
+     * valid value encoded in the string must either be a (positive) number,
+     * convertible to an integer or a reference to an environment-variable in
+     * the form <code>${VARIABLE_NAME}</code> or <code>$VARIABLE_NAME</code>.
+     * @param value The (user-provided) string which should either contain
+     *                 a number or a reference to an environment-variable.
+     * @return The given <a>buildNum</a> if valid or an empty string.
+     */
+    public static String makeValid(String value) {
+        if (value == null) return "";  // Return the default-value.
+        try {
+            value = value.trim();
+            // If we got a valid integer the following conversion will
+            // succeed without an exception.
+            Integer intVal = Integer.valueOf(value);
+            if (intVal < 0)
+                return "";  // Negative numbers are not allowed.
+            else
+                return intVal.toString();
+        } catch (Exception e) {
+            // Obviously, we did not receive a valid integer as override.
+            // Is it a reference to an environment-variable?
+            if (value.matches(VersionNumberCommon.ENV_VAR_PATTERN)) {
+                // Yes, so return it as-is and only retrieve its value when
+                // the value must be accessed (to always get the most
+                // up-to-date value).
+                return value;
+            } else {
+                // No, so it seems to be junk. Just return the default-value.
+                return "";
+            }
+        }
     }
     
     private static String sizeTo(String s, int length) {
