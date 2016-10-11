@@ -167,16 +167,24 @@ public class VersionNumberCommon {
                     int yearsSinceStart = buildDate.get(Calendar.YEAR) - projectStartCal.get(Calendar.YEAR);
                     replaceValue = sizeTo(Integer.toString(yearsSinceStart), argumentString.length());
                 }
-                // if it's not one of the defined values, check the environment variables
-                // NOTE: Actually, we should never get here, because environment-variables
-                //       should already be resolved at the beginning of this method.
+                // if it's not one of the defined values, check the environment variables (again)
+                // NOTE: This probably means, that an environment-variable resolves to itself, which
+                //       might result in an infinite loop. Check for this!
                 else {
-                    LOGGER.fine("It seems we are missing some implementation. We should actually never get here! " +
-                                "[expressionKey == " + expressionKey + "]");
+                    LOGGER.fine("Special case: A variable could not be resolved. (Does it resolve to itself?)" +
+                                " [var == " + expressionKey + "]");
                     if (enVars != null) {
                         for (Map.Entry entry : enVars.entrySet()) {
                             if (entry.getKey().equals(expressionKey)) {
-                                replaceValue = (String)entry.getValue();
+                                // Check for variable which resolves to itself!
+                                if (entry.getValue().equals("${" + expressionKey + "}")) {
+                                    LOGGER.fine("Yes, the variable resolves to itself. Ignoring it." +
+                                                " [var == " + expressionKey + "]");
+                                } else {
+                                    LOGGER.fine("No, the variable does not resolve to itself. Using it." +
+                                                " [var == " + expressionKey + "]");
+                                    replaceValue = (String)entry.getValue();
+                                }
                             }
                         }
                     }
