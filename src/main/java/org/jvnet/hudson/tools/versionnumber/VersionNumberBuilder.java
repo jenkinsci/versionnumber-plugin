@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.logging.Logger;
+import java.lang.invoke.MethodHandles;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -52,6 +54,9 @@ import net.sf.json.JSONObject;
  * @author Deniz Bahadir - BENOCS
  */
 public class VersionNumberBuilder extends BuildWrapper {
+    
+    /** Use Java 7 MethodHandles to get my class for logger. */
+    private static final Logger LOGGER = Logger.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     
     private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
 
@@ -318,8 +323,6 @@ public class VersionNumberBuilder extends BuildWrapper {
             super(VersionNumberBuilder.class);
             load();
         }
-        
-        
         
         /**
          * Performs on-the-fly validation of the form field 'name'.

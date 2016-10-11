@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
+import java.util.logging.Logger;
+import java.lang.invoke.MethodHandles;
 
 import hudson.EnvVars;
 import hudson.model.Run;
@@ -13,6 +15,9 @@ import hudson.model.Run;
  * Common methods used by freestyle and pipeline jobs.
  */
 public class VersionNumberCommon {
+    
+    /** Use Java 7 MethodHandles to get my class for logger. */
+    private static final Logger LOGGER = Logger.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     
     private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
 
@@ -38,15 +43,22 @@ public class VersionNumberCommon {
         
         while (prevBuild != null) {
             VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
+
+            if (prevAction == null) 
+                LOGGER.fine("prevAction.getVersionNumber() : 'null'");
+            else
+                LOGGER.fine("prevAction.getVersionNumber() : '" + prevAction.getVersionNumber() + "'");
             
             if (prevAction != null) {
                 if (envPrefix != null) {
                     String version = prevAction.getVersionNumber();
     
                     if (version.startsWith(envPrefix)) {
+                        LOGGER.info("Previous build's version-number: '" + prevAction.getVersionNumber() + "'");
                         return prevBuild;
                     }
                 } else {
+                    LOGGER.info("Previous build's version-number: '" + prevAction.getVersionNumber() + "'");
                     return prevBuild;
                 }
             }
@@ -54,6 +66,7 @@ public class VersionNumberCommon {
             prevBuild = prevBuild.getPreviousBuild();
         }
         
+        LOGGER.info("Previous build's version-number: N/A");
         return null;
     }
     
@@ -71,8 +84,10 @@ public class VersionNumberCommon {
                                              VersionNumberBuildInfo info,
                                              Map<String, String> enVars,
                                              Calendar buildDate) {
+        LOGGER.info("Version-number format-string before expansion of env-variables: '" + versionNumberFormatString + "'");
         // Expand all environment-variables in the format-string.
         String vnf = new EnvVars(enVars).expand(versionNumberFormatString);
+        LOGGER.info("Version-number format-string after expansion of env-variables: '" + vnf + "'");
         
         // Try to expand all remaining (version-number specific) variables.
         int blockStart = 0;
@@ -153,7 +168,11 @@ public class VersionNumberCommon {
                     replaceValue = sizeTo(Integer.toString(yearsSinceStart), argumentString.length());
                 }
                 // if it's not one of the defined values, check the environment variables
+                // NOTE: Actually, we should never get here, because environment-variables
+                //       should already be resolved at the beginning of this method.
                 else {
+                    LOGGER.fine("It seems we are missing some implementation. We should actually never get here! " +
+                                "[expressionKey == " + expressionKey + "]");
                     if (enVars != null) {
                         for (Map.Entry entry : enVars.entrySet()) {
                             if (entry.getKey().equals(expressionKey)) {
@@ -166,6 +185,7 @@ public class VersionNumberCommon {
             }
         } while (blockStart >= 0);
         
+        LOGGER.info("Version-number format-string after expansion of all variables: '" + vnf + "'");
         return vnf;
     }
     
