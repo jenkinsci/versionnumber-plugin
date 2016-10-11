@@ -176,12 +176,12 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     private boolean isOverrideString(String override) {
-    	boolean result = false;
-    	
-    	if (override != null && !override.equals("")) {
-    		result = true;
-    	}
-    	return result;
+        boolean result = false;
+        
+        if (override != null && !override.equals("")) {
+            result = true;
+        }
+        return result;
     }
     
     @SuppressWarnings("unchecked")
@@ -189,12 +189,12 @@ public class VersionNumberBuilder extends BuildWrapper {
         EnvVars enVars = build.getEnvironment(listener);
         Run prevBuild = getPreviousBuildWithVersionNumber(build, listener);
         VersionNumberBuildInfo incBuildInfo = VersionNumberCommon.incBuild(build, enVars, prevBuild,
-        		this.skipFailedBuilds,
-        		this.oBuildsToday,
-        		this.oBuildsThisWeek,
-        		this.oBuildsThisMonth,
-        		this.oBuildsThisYear,
-        		this.oBuildsAllTime);
+                this.skipFailedBuilds,
+                this.oBuildsToday,
+                this.oBuildsThisWeek,
+                this.oBuildsThisMonth,
+                this.oBuildsThisYear,
+                this.oBuildsAllTime);
         
         // have we overridden any of the version number info?  If so, set it up here
         boolean saveOverrides = false;
@@ -254,7 +254,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             oBuildsAllTime = VersionNumberCommon.makeValid(oBuildsAllTime);
             try {
                 if (!oBuildsAllTime.matches(VersionNumberCommon.ENV_VAR_PATTERN)) {
-                	oBuildsAllTime = "";  // Reset!
+                    oBuildsAllTime = "";  // Reset!
                 }
             } catch (Exception e) {
                 // Invalid value, so do not override!

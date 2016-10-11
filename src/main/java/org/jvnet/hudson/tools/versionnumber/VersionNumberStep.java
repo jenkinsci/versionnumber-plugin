@@ -52,7 +52,7 @@ import java.util.Date;
  */
 public class VersionNumberStep extends AbstractStepImpl {
  
-	public final String versionNumberString;
+    public final String versionNumberString;
 
     @DataBoundSetter
     public boolean skipFailedBuilds = false;
@@ -62,7 +62,7 @@ public class VersionNumberStep extends AbstractStepImpl {
 
     @DataBoundSetter
     public String projectStartDate = null;
-	
+    
     @DataBoundSetter
     public String overrideBuildsAllTime = null;
     
@@ -79,30 +79,30 @@ public class VersionNumberStep extends AbstractStepImpl {
     public String overrideBuildsThisYear = null;
     
     @DataBoundConstructor
-	public VersionNumberStep(String versionNumberString) {
-		if ((versionNumberString == null) || versionNumberString.isEmpty()) {
-			throw new IllegalArgumentException("must specify a version number string.");
-		}
-		this.versionNumberString = versionNumberString;
-	}
+    public VersionNumberStep(String versionNumberString) {
+        if ((versionNumberString == null) || versionNumberString.isEmpty()) {
+            throw new IllegalArgumentException("must specify a version number string.");
+        }
+        this.versionNumberString = versionNumberString;
+    }
 
-	public Date getProjectStartDate() {
-		Date value = VersionNumberCommon.parseDate(this.projectStartDate);
-		if (value.compareTo(new Date(0)) != 0) {
-			return value;
-		}
-		return null;
-	}
+    public Date getProjectStartDate() {
+        Date value = VersionNumberCommon.parseDate(this.projectStartDate);
+        if (value.compareTo(new Date(0)) != 0) {
+            return value;
+        }
+        return null;
+    }
 
-	public String getVersionPrefix() {
-		if ((this.versionPrefix != null) && (!this.versionPrefix.isEmpty())) {
-			return this.versionPrefix;
-		}
-		return null;
-	}
+    public String getVersionPrefix() {
+        if ((this.versionPrefix != null) && (!this.versionPrefix.isEmpty())) {
+            return this.versionPrefix;
+        }
+        return null;
+    }
 
     @Extension
-	public static final class DescriptorImpl extends AbstractStepDescriptorImpl {
+    public static final class DescriptorImpl extends AbstractStepDescriptorImpl {
 
         public DescriptorImpl() {
             super(Execution.class);
@@ -120,42 +120,43 @@ public class VersionNumberStep extends AbstractStepImpl {
 
     public static class Execution extends AbstractSynchronousStepExecution<String> {
         
-		@StepContextParameter private transient Run run;
-		@StepContextParameter private transient EnvVars env;
+        @StepContextParameter private transient Run run;
+        @StepContextParameter private transient EnvVars env;
         @Inject(optional=true) private transient VersionNumberStep step;
 
-        @Override protected String run() throws Exception {
-			if (step.versionNumberString != null) {
-				try {
-					Run prevBuild = VersionNumberCommon.getPreviousBuildWithVersionNumber(run, step.versionPrefix);
-					VersionNumberBuildInfo info = VersionNumberCommon.incBuild(run, env, prevBuild, step.skipFailedBuilds,
-							step.overrideBuildsToday,
-							step.overrideBuildsThisWeek,
-							step.overrideBuildsThisMonth,
-							step.overrideBuildsThisYear,
-							step.overrideBuildsAllTime);
-					
-					String formattedVersionNumber = VersionNumberCommon.formatVersionNumber(step.versionNumberString,
-																step.getProjectStartDate(),
-																info,
-																env,
-																run.getTimestamp());
-					// Difference compared to freestyle jobs.
-					// If a version prefix is specified, it is forced to be prefixed.
-					// Otherwise the version prefix does not function correctly - even in freestyle jobs.
-					// In freestlye jobs it is assumed that the user reuses the version prefix
-					// within the version number string, but this assumtion is not documented.
-					// Hence, it might yield to errors, and therefore in pipeline steps, we 
-					// force the version prefix to be prefixed.
-					if (step.versionPrefix != null) {
-						formattedVersionNumber = step.versionPrefix + formattedVersionNumber;
-					}
-					run.addAction(new VersionNumberAction(info, formattedVersionNumber));
-					return formattedVersionNumber;
-				} catch (Exception e) {
-				}
-			}
-			return "";
+        @Override
+        protected String run() throws Exception {
+            if (step.versionNumberString != null) {
+                try {
+                    Run prevBuild = VersionNumberCommon.getPreviousBuildWithVersionNumber(run, step.versionPrefix);
+                    VersionNumberBuildInfo info = VersionNumberCommon.incBuild(run, env, prevBuild, step.skipFailedBuilds,
+                            step.overrideBuildsToday,
+                            step.overrideBuildsThisWeek,
+                            step.overrideBuildsThisMonth,
+                            step.overrideBuildsThisYear,
+                            step.overrideBuildsAllTime);
+                    
+                    String formattedVersionNumber = VersionNumberCommon.formatVersionNumber(step.versionNumberString,
+                                                                                            step.getProjectStartDate(),
+                                                                                            info,
+                                                                                            env,
+                                                                                            run.getTimestamp());
+                    // Difference compared to freestyle jobs.
+                    // If a version prefix is specified, it is forced to be prefixed.
+                    // Otherwise the version prefix does not function correctly - even in freestyle jobs.
+                    // In freestlye jobs it is assumed that the user reuses the version prefix
+                    // within the version number string, but this assumtion is not documented.
+                    // Hence, it might yield to errors, and therefore in pipeline steps, we 
+                    // force the version prefix to be prefixed.
+                    if (step.versionPrefix != null) {
+                        formattedVersionNumber = step.versionPrefix + formattedVersionNumber;
+                    }
+                    run.addAction(new VersionNumberAction(info, formattedVersionNumber));
+                    return formattedVersionNumber;
+                } catch (Exception e) {
+                }
+            }
+            return "";
         }
 
         private static final long serialVersionUID = 1L;

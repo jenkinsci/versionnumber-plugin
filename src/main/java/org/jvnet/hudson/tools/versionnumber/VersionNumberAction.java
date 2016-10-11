@@ -18,7 +18,7 @@ public class VersionNumberAction implements Action {
     }
 
     public String getVersionNumber() {
-	return this.versionNumber;
+        return this.versionNumber;
     }
 
     public String getDisplayName() {

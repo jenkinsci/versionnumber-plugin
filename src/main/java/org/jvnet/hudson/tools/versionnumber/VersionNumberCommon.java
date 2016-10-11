@@ -20,14 +20,14 @@ public class VersionNumberCommon {
     public static final String ENV_VAR_PATTERN = "^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$";
     
     public static VersionNumberBuildInfo incBuild(Run build, EnvVars vars,
-    		Run prevBuild, boolean skipFailedBuilds, String overrideBuildsToday, String overrideBuildsThisWeek,
-    		String overrideBuildsThisMonth, String overrideBuildsThisYear, String overrideBuildsAllTime) {
-    	
-    	int buildsToday = new BuildsTodayGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsToday);
-    	int buildsThisWeek = new BuildsThisWeekGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisWeek);
-    	int buildsThisMonth = new BuildsThisMonthGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisMonth);
-    	int buildsThisYear = new BuildsThisYearGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisYear);
-    	int buildsAllTime = new BuildsAllTimeGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsAllTime);
+            Run prevBuild, boolean skipFailedBuilds, String overrideBuildsToday, String overrideBuildsThisWeek,
+            String overrideBuildsThisMonth, String overrideBuildsThisYear, String overrideBuildsAllTime) {
+        
+        int buildsToday = new BuildsTodayGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsToday);
+        int buildsThisWeek = new BuildsThisWeekGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisWeek);
+        int buildsThisMonth = new BuildsThisMonthGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisMonth);
+        int buildsThisYear = new BuildsThisYearGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisYear);
+        int buildsAllTime = new BuildsAllTimeGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsAllTime);
                 
         return new VersionNumberBuildInfo(buildsToday, buildsThisWeek, buildsThisMonth, buildsThisYear, buildsAllTime);
     }
@@ -66,7 +66,7 @@ public class VersionNumberCommon {
         }
     }
         
-	public static String formatVersionNumber(String versionNumberFormatString,
+    public static String formatVersionNumber(String versionNumberFormatString,
                                              Date projectStartDate,
                                              VersionNumberBuildInfo info,
                                              Map<String, String> enVars,

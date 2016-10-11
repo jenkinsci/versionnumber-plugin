@@ -6,10 +6,10 @@ import hudson.model.Run;
 
 public class BuildsThisMonthGenerator extends AbstractBuildNumberGenerator {
 
-	@Override
-	public int resolveValue(Run build, Run prevBuild, int increment) {
-		int nextNumber;
-		
+    @Override
+    public int resolveValue(Run build, Run prevBuild, int increment) {
+        int nextNumber;
+        
         // get the current build date and the previous build date
         Calendar curCal = build.getTimestamp();
         Calendar todayCal = prevBuild.getTimestamp();
@@ -21,13 +21,13 @@ public class BuildsThisMonthGenerator extends AbstractBuildNumberGenerator {
         // increment builds per month
         if (curCal.get(Calendar.MONTH) == todayCal.get(Calendar.MONTH)
                 && curCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR)) {
-        	nextNumber = info.getBuildsThisMonth() + increment;
+            nextNumber = info.getBuildsThisMonth() + increment;
         } else {
-        	nextNumber = 1;
+            nextNumber = 1;
         }
         
         return nextNumber;
-		
-	}
+        
+    }
 
 }

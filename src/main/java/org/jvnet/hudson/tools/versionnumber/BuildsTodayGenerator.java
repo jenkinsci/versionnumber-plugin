@@ -6,10 +6,10 @@ import hudson.model.Run;
 
 public class BuildsTodayGenerator extends AbstractBuildNumberGenerator {
 
-	@Override
-	public int resolveValue(Run build, Run prevBuild, int increment) {
-		int nextNumber;
-		
+    @Override
+    public int resolveValue(Run build, Run prevBuild, int increment) {
+        int nextNumber;
+        
         // get the current build date and the previous build date
         Calendar curCal = build.getTimestamp();
         Calendar todayCal = prevBuild.getTimestamp();
@@ -27,7 +27,7 @@ public class BuildsTodayGenerator extends AbstractBuildNumberGenerator {
         }
         
         return nextNumber;
-		
-	}
+        
+    }
 
 }
