@@ -129,6 +129,36 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
         job.getBuildWrappersList().add(versionNumberBuilder);
         FreeStyleBuild build = buildAndAssertSuccess(job);
         assertEquals("1.1.1.1.20", build.getDisplayName());
+        
+        // make sure that the overrides via environment variables remain
+        assertEquals("${ENVVAL_OF_ALL_TIME}", versionNumberBuilder.getBuildsAllTime());
+        assertEquals("${ENVVAL_OF_TODAY}", versionNumberBuilder.getBuildsToday());
+        assertEquals("${ENVVAL_OF_THIS_WEEK}", versionNumberBuilder.getBuildsThisWeek());
+        assertEquals("${ENVVAL_OF_THIS_MONTH}", versionNumberBuilder.getBuildsThisMonth());
+        assertEquals("${ENVVAL_OF_THIS_YEAR}", versionNumberBuilder.getBuildsThisYear());
+        
+    }
+    
+    public void testThatOverrideValuesGetResetAfterJobRuns() throws Exception {
+        FreeStyleProject job = createFreeStyleProject("versionNumberJob");
+        VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
+                "${BUILDS_TODAY}.${BUILDS_THIS_WEEK}.${BUILDS_THIS_MONTH}.${BUILDS_THIS_YEAR}.${BUILDS_ALL_TIME}",
+                null, null, null, "1", "7", "30", "365", "500", false, true);
+        
+        EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
+        EnvVars envVars = prop.getEnvVars();
+        super.hudson.getGlobalNodeProperties().add(prop);
+        
+        job.getBuildWrappersList().add(versionNumberBuilder);
+        FreeStyleBuild build = buildAndAssertSuccess(job);
+        assertEquals("1.7.30.365.500", build.getDisplayName());
+        
+        // make sure that the direct set variables were cleaned up
+        assertEquals("", versionNumberBuilder.getBuildsAllTime());
+        assertEquals("", versionNumberBuilder.getBuildsToday());
+        assertEquals("", versionNumberBuilder.getBuildsThisWeek());
+        assertEquals("", versionNumberBuilder.getBuildsThisMonth());
+        assertEquals("", versionNumberBuilder.getBuildsThisYear());
     }
     
     private void assertBuildsAllTime(int expected, AbstractBuild build) {

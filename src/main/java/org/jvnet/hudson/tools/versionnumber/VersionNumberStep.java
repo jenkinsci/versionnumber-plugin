@@ -63,6 +63,21 @@ public class VersionNumberStep extends AbstractStepImpl {
     @DataBoundSetter
     public String projectStartDate = null;
 	
+    @DataBoundSetter
+    public String overrideBuildsAllTime = null;
+    
+    @DataBoundSetter
+    public String overrideBuildsToday = null;
+    
+    @DataBoundSetter
+    public String overrideBuildsThisWeek = null;
+    
+    @DataBoundSetter
+    public String overrideBuildsThisMonth = null;
+    
+    @DataBoundSetter
+    public String overrideBuildsThisYear = null;
+    
     @DataBoundConstructor
 	public VersionNumberStep(String versionNumberString) {
 		if ((versionNumberString == null) || versionNumberString.isEmpty()) {
@@ -113,7 +128,13 @@ public class VersionNumberStep extends AbstractStepImpl {
 			if (step.versionNumberString != null) {
 				try {
 					Run prevBuild = VersionNumberCommon.getPreviousBuildWithVersionNumber(run, step.versionPrefix);
-					VersionNumberBuildInfo info = VersionNumberCommon.incBuild(run, prevBuild, step.skipFailedBuilds);
+					VersionNumberBuildInfo info = VersionNumberCommon.incBuild(run, env, prevBuild, step.skipFailedBuilds,
+							step.overrideBuildsToday,
+							step.overrideBuildsThisWeek,
+							step.overrideBuildsThisMonth,
+							step.overrideBuildsThisYear,
+							step.overrideBuildsAllTime);
+					
 					String formattedVersionNumber = VersionNumberCommon.formatVersionNumber(step.versionNumberString,
 																step.getProjectStartDate(),
 																info,
