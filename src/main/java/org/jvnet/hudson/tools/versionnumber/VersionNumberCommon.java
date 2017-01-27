@@ -131,6 +131,8 @@ public class VersionNumberCommon {
                     replaceValue = fmt.format(buildDate.getTime());
                 } else if ("BUILD_DAY".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.DAY_OF_MONTH)), argumentString.length());
+                } else if ("BUILD_DAY_OF_YEAR".equals(expressionKey)) {
+                    replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.DAY_OF_YEAR)), argumentString.length());
                 } else if ("BUILD_WEEK".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.WEEK_OF_YEAR)), argumentString.length());
                 } else if ("BUILD_MONTH".equals(expressionKey)) {
