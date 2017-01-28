@@ -184,6 +184,8 @@ public class VersionNumberCommon {
                                     LOGGER.fine("No, the variable does not resolve to itself. Using it." +
                                                 " [var == " + expressionKey + "]");
                                     replaceValue = (String)entry.getValue();
+                                    // Probably just use a substring of the value?
+                                    replaceValue = selectSubstringOfReplaceValue(replaceValue, argumentString);
                                 }
                             }
                         }
@@ -195,6 +197,34 @@ public class VersionNumberCommon {
         
         LOGGER.info("Version-number format-string after expansion of all variables: '" + vnf + "'");
         return vnf;
+    }
+    
+    private static String selectSubstringOfReplaceValue(String replaceValue, String argumentString) {
+        LOGGER.info("Before selecting a substring of the replace-value. [replaceValue == " + replaceValue + ", argumentString == " + argumentString + "]");
+        
+        // We will use the below lines to limit the number of character we want to 
+        // use from the front or the back of the replace-value (aka environment variable).
+
+        // Make sure there is an argument string and that it is surrounded by double-quotes!
+        if (!"".equals(argumentString) && argumentString.length() >= 3 &&
+                argumentString.charAt(0) == '"' && argumentString.charAt(argumentString.length() - 1) == '"') {
+            // Strip quotes from argument-string.
+            String fmtString = argumentString.substring(1, argumentString.length() - 1);
+            // Make sure it only contains a positive or negative whole number.
+            if (fmtString.matches("^(\\+|-)?\\d+$")) {
+                Integer fmtInt = Integer.parseInt(fmtString);
+                // if it's not smaller than the length of the value, we will use the whole value
+                if (Math.abs(fmtInt.intValue()) < replaceValue.length()) {
+                    if (fmtInt > 0) {
+                        replaceValue = replaceValue.substring(0, fmtInt);
+                    } else if (fmtInt < 0) {
+                        replaceValue = replaceValue.substring(replaceValue.length() + fmtInt);
+                    }
+                }
+            }
+        }
+        LOGGER.info("After selecting a substring of the replace-value. [replaceValue == " + replaceValue + "]");
+        return replaceValue;
     }
     
     /**

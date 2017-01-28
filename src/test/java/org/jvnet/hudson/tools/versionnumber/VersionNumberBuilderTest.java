@@ -78,7 +78,7 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
         build = buildAndAssertSuccess(job);
         assertBuildsAllTime(2, build);
     }
-
+    
     // see #HUDSON-7933
     public void testFailureEarlyDoesNotResetVersionNumber() throws Exception {
         FreeStyleProject job = createFreeStyleProject("versionNumberJob");
@@ -99,7 +99,7 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
         build = buildAndAssertSuccess(job);
         assertBuildsAllTime(4, build);
     }
-
+    
     public void testUseAsBuildDisplayName() throws Exception {
         FreeStyleProject job = createFreeStyleProject("versionNumberJob");
         VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
@@ -161,21 +161,37 @@ public class VersionNumberBuilderTest extends HudsonTestCase {
         assertEquals("", versionNumberBuilder.getBuildsThisYear());
     }
     
+    public void testSubstringFromEnvironmentVariable() throws Exception {
+        FreeStyleProject job = createFreeStyleProject("versionNumberJob");
+        VersionNumberBuilder versionNumberBuilder = new VersionNumberBuilder(
+                "${ENVVAL_TESTING, \"+3\"}.${ENVVAL_TESTING, \"2\"}.${ENVVAL_TESTING, \"-3\"}" +
+                ".${ENVVAL_TESTING, \"5\"}.${ENVVAL_TESTING, \"+5\"}.${ENVVAL_TESTING, \"-5\"}" +
+                ".${ENVVAL_TESTING, \"0\"}.${ENVVAL_TESTING, \"1.5\"}.${ENVVAL_TESTING, \"test\"}",
+                null, "${ENVVAL_TESTING}", null, null, null, null, null, null, false, true);
+        // tried
+        EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
+        EnvVars envVars = prop.getEnvVars();
+        envVars.put("ENVVAL_TESTING", "1234");
+        super.hudson.getGlobalNodeProperties().add(prop);
+        
+        job.getBuildWrappersList().add(versionNumberBuilder);
+        FreeStyleBuild build = buildAndAssertSuccess(job);
+        assertEquals("123.12.234.1234.1234.1234.1234.1234.1234", build.getDisplayName());
+    }
+    
     private void assertBuildsAllTime(int expected, AbstractBuild build) {
         VersionNumberAction versionNumberAction = build
                 .getAction(VersionNumberAction.class);
         assertEquals(expected, versionNumberAction.getInfo().getBuildsAllTime());
     }
-
+    
     private static class FailureSCM extends NullSCM {
-
         @Override
         public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher,
                 FilePath remoteDir, BuildListener listener, File changeLogFile)
                 throws IOException, InterruptedException {
             return false;
         }
-
     }
-
+    
 }
