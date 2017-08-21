@@ -173,6 +173,29 @@ public class VersionNumberCommon {
                     projectStartCal.setTime(projectStartDate);
                     int yearsSinceStart = buildDate.get(Calendar.YEAR) - projectStartCal.get(Calendar.YEAR);
                     replaceValue = sizeTo(Integer.toString(yearsSinceStart), argumentString.length());
+                } else if(("SECONDS_SINCE_MIDNIGHT".equals(expressionKey))){
+                    Calendar c = Calendar.getInstance();
+                    long now = c.getTimeInMillis();
+                    c.set(Calendar.HOUR_OF_DAY, 0);
+                    c.set(Calendar.MINUTE, 0);
+                    c.set(Calendar.SECOND, 0);
+                    c.set(Calendar.MILLISECOND, 0);
+                    long msPassed = now - c.getTimeInMillis();
+                    long secondsPassed = (msPassed / 1000) / 2;
+                    replaceValue = sizeTo(Long.toString(secondsPassed), argumentString.length());
+                } else if(("DAYS_SINCE_MILLENNIUM".equals(expressionKey))){
+                    Calendar c = Calendar.getInstance();
+                    long now = c.getTimeInMillis();
+                    c.set(Calendar.HOUR_OF_DAY, 0);
+                    c.set(Calendar.MINUTE, 0);
+                    c.set(Calendar.SECOND, 0);
+                    c.set(Calendar.MILLISECOND, 0);
+                    c.set(Calendar.DAY_OF_MONTH, 1);
+                    c.set(Calendar.MONTH, 1);
+                    c.set(Calendar.YEAR, 2000);
+                    long msPassed = now - c.getTimeInMillis();
+                    int daysPassed = (int)(msPassed/(1000*60*60*24));
+                    replaceValue = sizeTo(Long.toString(daysPassed), argumentString.length());
                 }
                 // if it's not one of the defined values, check the environment variables (again)
                 // NOTE: This probably means, that an environment-variable resolves to itself, which
