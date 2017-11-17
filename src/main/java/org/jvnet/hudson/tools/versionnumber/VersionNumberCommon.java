@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import java.lang.invoke.MethodHandles;
 
 import hudson.EnvVars;
+import hudson.model.Result;
 import hudson.model.Run;
 
 /**
@@ -19,20 +20,26 @@ public class VersionNumberCommon {
     /** Use Java 7 MethodHandles to get my class for logger. */
     private static final Logger LOGGER = Logger.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     
-    private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+    public static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+
+    public static final String WORST_RESULT_SUCCESS   = "SUCCESS";
+    public static final String WORST_RESULT_UNSTABLE  = "UNSTABLE";
+    public static final String WORST_RESULT_FAILURE   = "FAILURE";
+    public static final String WORST_RESULT_ABORTED   = "ABORTED";
+    public static final String WORST_RESULT_NOT_BUILT = "NOT_BUILT";
 
     // Pattern:   ${VAR_NAME} or $VAR_NAME
     public static final String ENV_VAR_PATTERN = "^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$";
     
     public static VersionNumberBuildInfo incBuild(Run build, EnvVars vars,
-            Run prevBuild, boolean skipFailedBuilds, String overrideBuildsToday, String overrideBuildsThisWeek,
+            Run prevBuild, Result worstResultForIncrement, String overrideBuildsToday, String overrideBuildsThisWeek,
             String overrideBuildsThisMonth, String overrideBuildsThisYear, String overrideBuildsAllTime) {
-        
-        int buildsToday = new BuildsTodayGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsToday);
-        int buildsThisWeek = new BuildsThisWeekGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisWeek);
-        int buildsThisMonth = new BuildsThisMonthGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisMonth);
-        int buildsThisYear = new BuildsThisYearGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisYear);
-        int buildsAllTime = new BuildsAllTimeGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsAllTime);
+       
+        int buildsToday = new BuildsTodayGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsToday);
+        int buildsThisWeek = new BuildsThisWeekGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsThisWeek);
+        int buildsThisMonth = new BuildsThisMonthGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsThisMonth);
+        int buildsThisYear = new BuildsThisYearGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsThisYear);
+        int buildsAllTime = new BuildsAllTimeGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsAllTime);
                 
         return new VersionNumberBuildInfo(buildsToday, buildsThisWeek, buildsThisMonth, buildsThisYear, buildsAllTime);
     }

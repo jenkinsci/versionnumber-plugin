@@ -35,10 +35,14 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import hudson.Extension;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.EnvVars;
+import hudson.util.ListBoxModel;
 
 import java.util.Date;
+import java.util.logging.Logger;
+import java.lang.invoke.MethodHandles;
 
 /**
  * Returns the version number according to the
@@ -51,11 +55,18 @@ import java.util.Date;
  * </pre>
  */
 public class VersionNumberStep extends AbstractStepImpl {
+    
+    /** Use Java 7 MethodHandles to get my class for logger. */
+    private static final Logger LOGGER = Logger.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
  
     public final String versionNumberString;
 
     @DataBoundSetter
+    @Deprecated
     public boolean skipFailedBuilds = false;
+
+    @DataBoundSetter
+    public String worstResultForIncrement = null;
 
     @DataBoundSetter
     public String versionPrefix = null;
@@ -101,6 +112,33 @@ public class VersionNumberStep extends AbstractStepImpl {
         return null;
     }
 
+    public Result getWorstResultForIncrement() {
+        // For compatibility-reasons during transition from old plugin (<= 1.8.1) to newer plugin.
+        if (this.skipFailedBuilds) {
+            LOGGER.warning("At least in one project VersionNumber plugin still uses the old config-variable 'skipFailedBuilds'. Make sure to update and safe the job-configs to update that behavior.");
+            this.skipFailedBuilds = false;
+            this.worstResultForIncrement = VersionNumberCommon.WORST_RESULT_SUCCESS;
+        }
+        if (this.worstResultForIncrement == null) {
+            this.worstResultForIncrement = VersionNumberCommon.WORST_RESULT_NOT_BUILT;
+        }
+        switch (this.worstResultForIncrement) {
+            case VersionNumberCommon.WORST_RESULT_NOT_BUILT:
+                return Result.NOT_BUILT;
+            case VersionNumberCommon.WORST_RESULT_ABORTED:
+                return Result.ABORTED;
+            case VersionNumberCommon.WORST_RESULT_FAILURE:
+                return Result.FAILURE;
+            case VersionNumberCommon.WORST_RESULT_UNSTABLE:
+                return Result.UNSTABLE;
+            case VersionNumberCommon.WORST_RESULT_SUCCESS:
+                return Result.SUCCESS;
+            default:
+                this.worstResultForIncrement = VersionNumberCommon.WORST_RESULT_SUCCESS;
+                return Result.SUCCESS;
+        }
+    }
+    
     @Extension
     public static final class DescriptorImpl extends AbstractStepDescriptorImpl {
 
@@ -116,6 +154,16 @@ public class VersionNumberStep extends AbstractStepImpl {
             return "Determine the correct version number";
         }
 
+        public ListBoxModel doFillWorstResultForIncrementItems() {
+            ListBoxModel items = new ListBoxModel();
+            items.add(VersionNumberCommon.WORST_RESULT_SUCCESS);
+            items.add(VersionNumberCommon.WORST_RESULT_UNSTABLE);
+            items.add(VersionNumberCommon.WORST_RESULT_FAILURE);
+            items.add(VersionNumberCommon.WORST_RESULT_ABORTED);
+            items.add(VersionNumberCommon.WORST_RESULT_NOT_BUILT);
+            return items;
+        }
+
     }
 
     public static class Execution extends AbstractSynchronousStepExecution<String> {
@@ -129,7 +177,8 @@ public class VersionNumberStep extends AbstractStepImpl {
             if (step.versionNumberString != null) {
                 try {
                     Run prevBuild = VersionNumberCommon.getPreviousBuildWithVersionNumber(run, step.versionPrefix);
-                    VersionNumberBuildInfo info = VersionNumberCommon.incBuild(run, env, prevBuild, step.skipFailedBuilds,
+                    VersionNumberBuildInfo info = VersionNumberCommon.incBuild(run, env, prevBuild,
+                            step.getWorstResultForIncrement(),
                             step.overrideBuildsToday,
                             step.overrideBuildsThisWeek,
                             step.overrideBuildsThisMonth,
@@ -145,7 +194,7 @@ public class VersionNumberStep extends AbstractStepImpl {
                     // If a version prefix is specified, it is forced to be prefixed.
                     // Otherwise the version prefix does not function correctly - even in freestyle jobs.
                     // In freestlye jobs it is assumed that the user reuses the version prefix
-                    // within the version number string, but this assumtion is not documented.
+                    // within the version number string, but this assumption is not documented.
                     // Hence, it might yield to errors, and therefore in pipeline steps, we 
                     // force the version prefix to be prefixed.
                     if (step.versionPrefix != null) {
@@ -159,7 +208,7 @@ public class VersionNumberStep extends AbstractStepImpl {
             return "";
         }
 
-        private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 2L;
 
     }
 

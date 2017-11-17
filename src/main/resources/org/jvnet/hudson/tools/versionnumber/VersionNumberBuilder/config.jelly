@@ -9,9 +9,9 @@
   <f:entry title="Prefix Variable" help="/plugin/versionnumber/help-environmentPrefixVariable.html">
     <f:textbox field="environmentPrefixVariable" />
   </f:entry>
-  <f:entry title="Failed Builds" help="/plugin/versionnumber/help-reuseVersionNumbers.html">
-    <f:checkbox name="skipFailedBuilds" checked="${instance.skipFailedBuilds}" />
-        Don't increment builds today / this week / this month / this year / all time after a failed build.
+  <f:entry title="Skip Builds worse than" field="worstResultForIncrement" help="/plugin/versionnumber/help-skipBuildsWorseThan.html">
+    <f:select/>
+        Don't increment builds today / this week / this month / this year / all time after a build-run with a result worse than the selected one.
   </f:entry>
   <f:entry title="Build Display Name" help="/plugin/versionnumber/help-useAsBuildDisplayName.html">
     <f:checkbox name="useAsBuildDisplayName" checked="${instance.useAsBuildDisplayName}" />

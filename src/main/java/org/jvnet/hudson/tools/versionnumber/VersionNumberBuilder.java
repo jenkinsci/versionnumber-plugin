@@ -25,6 +25,7 @@ import hudson.model.Run;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.tasks.Builder;
+import hudson.util.ListBoxModel;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 
@@ -58,8 +59,6 @@ public class VersionNumberBuilder extends BuildWrapper {
     /** Use Java 7 MethodHandles to get my class for logger. */
     private static final Logger LOGGER = Logger.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     
-    private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
-
     private final String versionNumberString;
     private final Date projectStartDate;
     private final String environmentVariableName;
@@ -71,7 +70,9 @@ public class VersionNumberBuilder extends BuildWrapper {
     private String oBuildsThisYear;
     private String oBuildsAllTime;
     
-    private boolean skipFailedBuilds;
+    private String  worstResultForIncrement = null;
+    @Deprecated
+    private boolean skipFailedBuilds = false;
     private boolean useAsBuildDisplayName; 
     
     public VersionNumberBuilder(String versionNumberString,
@@ -86,7 +87,27 @@ public class VersionNumberBuilder extends BuildWrapper {
             boolean skipFailedBuilds) {
         this(versionNumberString, projectStartDate, environmentVariableName,
                 environmentPrefixVariable, buildsToday, buildsThisWeek, buildsThisMonth,
-                buildsThisYear, buildsAllTime, skipFailedBuilds, false);
+                buildsThisYear, buildsAllTime,
+                (skipFailedBuilds) ? VersionNumberCommon.WORST_RESULT_SUCCESS : VersionNumberCommon.WORST_RESULT_NOT_BUILT,
+                false);
+    }
+    
+    public VersionNumberBuilder(String versionNumberString,
+            String projectStartDate,
+            String environmentVariableName,
+            String environmentPrefixVariable,
+            String buildsToday,
+            String buildsThisWeek,
+            String buildsThisMonth,
+            String buildsThisYear,
+            String buildsAllTime,
+            boolean skipFailedBuilds,
+            boolean useAsBuildDisplayName) {
+        this(versionNumberString, projectStartDate, environmentVariableName,
+                environmentPrefixVariable, buildsToday, buildsThisWeek, buildsThisMonth,
+                buildsThisYear, buildsAllTime,
+                (skipFailedBuilds) ? VersionNumberCommon.WORST_RESULT_SUCCESS : VersionNumberCommon.WORST_RESULT_NOT_BUILT,
+                useAsBuildDisplayName);
     }
     
     @DataBoundConstructor
@@ -99,13 +120,13 @@ public class VersionNumberBuilder extends BuildWrapper {
                                 String buildsThisMonth,
                                 String buildsThisYear,
                                 String buildsAllTime,
-                                boolean skipFailedBuilds,
+                                String worstResultForIncrement,
                                 boolean useAsBuildDisplayName) {
         this.versionNumberString = versionNumberString;
         this.projectStartDate = VersionNumberCommon.parseDate(projectStartDate);
         this.environmentVariableName = environmentVariableName;
         this.environmentPrefixVariable = environmentPrefixVariable;
-        this.skipFailedBuilds = skipFailedBuilds;
+        this.worstResultForIncrement = worstResultForIncrement;
         this.useAsBuildDisplayName = useAsBuildDisplayName;
         
         this.oBuildsToday = VersionNumberCommon.makeValid(buildsToday);
@@ -135,8 +156,31 @@ public class VersionNumberBuilder extends BuildWrapper {
         return this.oBuildsAllTime;
     }
     
-    public boolean getSkipFailedBuilds() {
-        return this.skipFailedBuilds;
+    public Result getWorstResultForIncrement() {
+        // For compatibility-reasons during transition from old plugin (<= 1.8.1) to newer plugin.
+        if (this.skipFailedBuilds) {
+            LOGGER.warning("At least in one project VersionNumber plugin still uses the old config-variable 'skipFailedBuilds'. Make sure to update and safe the job-configs to update that behavior.");
+            this.skipFailedBuilds = false;
+            this.worstResultForIncrement = VersionNumberCommon.WORST_RESULT_SUCCESS;
+        }
+        if (this.worstResultForIncrement == null) {
+            this.worstResultForIncrement = VersionNumberCommon.WORST_RESULT_NOT_BUILT;
+        }
+        switch (this.worstResultForIncrement) {
+            case VersionNumberCommon.WORST_RESULT_NOT_BUILT:
+                return Result.NOT_BUILT;
+            case VersionNumberCommon.WORST_RESULT_ABORTED:
+                return Result.ABORTED;
+            case VersionNumberCommon.WORST_RESULT_FAILURE:
+                return Result.FAILURE;
+            case VersionNumberCommon.WORST_RESULT_UNSTABLE:
+                return Result.UNSTABLE;
+            case VersionNumberCommon.WORST_RESULT_SUCCESS:
+                return Result.SUCCESS;
+            default:
+                this.worstResultForIncrement = VersionNumberCommon.WORST_RESULT_SUCCESS;
+                return Result.SUCCESS;
+        }
     }
     
     public boolean getUseAsBuildDisplayName() {
@@ -151,7 +195,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     public String getProjectStartDate() {
-        final DateFormat defaultDateFormat = new SimpleDateFormat(DEFAULT_DATE_FORMAT_PATTERN);
+        final DateFormat defaultDateFormat = new SimpleDateFormat(VersionNumberCommon.DEFAULT_DATE_FORMAT_PATTERN);
         return defaultDateFormat.format(projectStartDate);
     }
     public String getEnvironmentVariableName() {
@@ -194,7 +238,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         EnvVars enVars = build.getEnvironment(listener);
         Run prevBuild = getPreviousBuildWithVersionNumber(build, listener);
         VersionNumberBuildInfo incBuildInfo = VersionNumberCommon.incBuild(build, enVars, prevBuild,
-                this.skipFailedBuilds,
+                this.getWorstResultForIncrement(),
                 this.oBuildsToday,
                 this.oBuildsThisWeek,
                 this.oBuildsThisMonth,
@@ -325,7 +369,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         }
         
         /**
-         * Performs on-the-fly validation of the form field 'name'.
+         * Performs on-the-fly validation of the form field 'environmentVariableName'.
          *
          * @param value
          *      This receives the current value of the field.
@@ -338,7 +382,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         }
 
         /**
-         * Performs on-the-fly validation of the form field 'name'.
+         * Performs on-the-fly validation of the form field 'versionNumberString'.
          *
          * @param value
          *      This receives the current value of the field.
@@ -354,7 +398,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         }
 
         /**
-         * Performs on-the-fly validation of the form field 'name'.
+         * Performs on-the-fly validation of the form field 'projectStartDate'.
          *
          * @param value
          *      This receives the current value of the field.
@@ -366,7 +410,17 @@ public class VersionNumberBuilder extends BuildWrapper {
                 return FormValidation.ok();
             }
         }
-        
+
+        public ListBoxModel doFillWorstResultForIncrementItems() {
+            ListBoxModel items = new ListBoxModel();
+            items.add(VersionNumberCommon.WORST_RESULT_SUCCESS);
+            items.add(VersionNumberCommon.WORST_RESULT_UNSTABLE);
+            items.add(VersionNumberCommon.WORST_RESULT_FAILURE);
+            items.add(VersionNumberCommon.WORST_RESULT_ABORTED);
+            items.add(VersionNumberCommon.WORST_RESULT_NOT_BUILT);
+            return items;
+        }
+
         /**
          * This human readable name is used in the configuration screen.
          */

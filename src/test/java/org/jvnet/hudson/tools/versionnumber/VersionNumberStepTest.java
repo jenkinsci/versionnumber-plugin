@@ -137,6 +137,90 @@ public class VersionNumberStepTest {
     }
     
     @Test
+    public void WorstResultForIncrement() {
+        story.addStep(new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                String todayDate = new SimpleDateFormat("yy-MM-dd").format(new Date());
+                WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
+
+                // A working job.
+                p.setDefinition(new CpsFlowDefinition(
+                        "def versionNumber = VersionNumber worstResultForIncrement: 'SUCCESS', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
+                        "echo \"VersionNumber: ${versionNumber}\""
+                ));
+                WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
+                story.j.waitForCompletion(b1);
+                story.j.assertBuildStatus(Result.SUCCESS, b1);
+                story.j.assertLogContains("VersionNumber: " + todayDate + "-01", b1);
+
+                // Because the former run succeeded, the following run's build-number will be increased,
+                // even though we force a failure!
+                p.setDefinition(new CpsFlowDefinition(
+                        "def versionNumber = VersionNumber worstResultForIncrement: 'SUCCESS', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
+                        "echo \"VersionNumber: ${versionNumber}\"\n" +
+                        "throw new RuntimeException(\"Fail (worstResultForIncrement: 'SUCCESS')!\")"
+                ));
+                WorkflowRun b2 = p.scheduleBuild2(0).waitForStart();
+                story.j.waitForCompletion(b2);
+                story.j.assertBuildStatus(Result.FAILURE, b2);
+                story.j.assertLogContains("VersionNumber: " + todayDate + "-02", b2);
+
+                // Because the former run did fail, the following run's build-number will NOT be increased,
+                // regardless of the failure we force again!
+                p.setDefinition(new CpsFlowDefinition(
+                        "def versionNumber = VersionNumber worstResultForIncrement: 'UNSTABLE', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
+                        "echo \"VersionNumber: ${versionNumber}\"\n" +
+                        "throw new RuntimeException(\"Fail (worstResultForIncrement: 'UNSTABLE')!\")"
+                ));
+                WorkflowRun b3 = p.scheduleBuild2(0).waitForStart();
+                story.j.waitForCompletion(b3);
+                story.j.assertBuildStatus(Result.FAILURE, b3);
+                story.j.assertLogContains("VersionNumber: " + todayDate + "-02", b3);
+
+                // Although the former run did fail, the following run's build-number will be increased,
+                // because FAILURE is the worst result which does not prevent incrementing the build-number,
+                // regardless of the failure we force again!
+                p.setDefinition(new CpsFlowDefinition(
+                        "def versionNumber = VersionNumber worstResultForIncrement: 'FAILURE', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
+                        "echo \"VersionNumber: ${versionNumber}\"\n" +
+                        "throw new RuntimeException(\"Fail (worstResultForIncrement: 'FAILURE')!\")"
+                ));
+                WorkflowRun b4 = p.scheduleBuild2(0).waitForStart();
+                story.j.waitForCompletion(b4);
+                story.j.assertBuildStatus(Result.FAILURE, b4);
+                story.j.assertLogContains("VersionNumber: " + todayDate + "-03", b4);
+
+                // Although the former run did fail, the following run's build-number will be increased,
+                // because ABORTED is the worst result which does not prevent incrementing the build-number,
+                // regardless of the failure we force again!
+                p.setDefinition(new CpsFlowDefinition(
+                        "def versionNumber = VersionNumber worstResultForIncrement: 'ABORTED', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
+                        "echo \"VersionNumber: ${versionNumber}\"\n" +
+                        "throw new RuntimeException(\"Fail (worstResultForIncrement: 'ABORTED')!\")"
+                ));
+                WorkflowRun b5 = p.scheduleBuild2(0).waitForStart();
+                story.j.waitForCompletion(b5);
+                story.j.assertBuildStatus(Result.FAILURE, b5);
+                story.j.assertLogContains("VersionNumber: " + todayDate + "-04", b5);
+
+                // Although the former run did fail, the following run's build-number will be increased,
+                // because ABORTED is the worst result which does not prevent incrementing the build-number,
+                // whether we force a failure again or not!
+                p.setDefinition(new CpsFlowDefinition(
+                        "def versionNumber = VersionNumber worstResultForIncrement: 'ABORTED', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
+                        "echo \"VersionNumber: ${versionNumber}\""
+                ));
+                WorkflowRun b6 = p.scheduleBuild2(0).waitForStart();
+                story.j.waitForCompletion(b6);
+                story.j.assertBuildStatus(Result.SUCCESS, b6);
+                story.j.assertLogContains("VersionNumber: " + todayDate + "-05", b6);
+            }
+        });
+        
+    }
+    
+    @Test
     public void VersionNumberStepPrefix() {
         story.addStep(new Statement() {
             @Override

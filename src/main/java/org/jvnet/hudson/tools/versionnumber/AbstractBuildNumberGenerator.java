@@ -10,7 +10,7 @@ import hudson.model.Run;
 public abstract class AbstractBuildNumberGenerator implements BuildNumberGenerator {
         
     @Override
-    public int getNextNumber(Run build, EnvVars vars, Run prevBuild, boolean skipFailedBuilds, String override) {
+    public int getNextNumber(Run build, EnvVars vars, Run prevBuild, Result worstResultForIncrement, String override) {
         int nextNumber = 1;
         
         // Attempt an override
@@ -19,13 +19,11 @@ public abstract class AbstractBuildNumberGenerator implements BuildNumberGenerat
         // If no override, start from the previous build
         } else if (prevBuild != null) {
             int increment = 1;
-            // if we're skipping version numbers on failed builds and the last build failed...
-            if (skipFailedBuilds) {
-                Result result = prevBuild.getResult();
-                if (result != null && ! result.equals(Result.SUCCESS)) {
-                    // don't increment
-                    increment = 0;
-                }
+            // we're skipping version numbers if the last build's result was worse than required...
+            Result result = prevBuild.getResult();
+            if (result != null && result.isWorseThan(worstResultForIncrement)) {
+                // don't increment
+                increment = 0;
             }
             
             nextNumber = resolveValue(build, prevBuild, increment);
