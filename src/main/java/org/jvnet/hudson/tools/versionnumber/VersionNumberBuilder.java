@@ -164,7 +164,7 @@ public class VersionNumberBuilder extends BuildWrapper {
             this.worstResultForIncrement = VersionNumberCommon.WORST_RESULT_SUCCESS;
         }
         if (this.worstResultForIncrement == null) {
-            this.worstResultForIncrement = VersionNumberCommon.WORST_RESULT_NOT_BUILT;
+            this.worstResultForIncrement = VersionNumberCommon.WORST_RESULT_ABORTED;
         }
         switch (this.worstResultForIncrement) {
             case VersionNumberCommon.WORST_RESULT_NOT_BUILT:
