@@ -8,9 +8,12 @@ public class VersionNumberAction implements Action {
     private VersionNumberBuildInfo info;
     private String versionNumber;
     
-    public VersionNumberAction(VersionNumberBuildInfo info, String versionNumber) {
+    private String envPrefix;
+    
+    public VersionNumberAction(VersionNumberBuildInfo info, String versionNumber, String envPrefix) {
         this.info = info;
         this.versionNumber = versionNumber;
+        this.envPrefix = envPrefix;
     }
     
     public VersionNumberBuildInfo getInfo() {
@@ -32,6 +35,13 @@ public class VersionNumberAction implements Action {
     public String getUrlName() {
         return "versionnumber/displayName";
     }
-    
-    
+
+	public String getEnvPrefix() {
+		return envPrefix;
+	}
+
+	public void setEnvPrefix(String envPrefix) {
+		this.envPrefix = envPrefix;
+	}
+      
 }
