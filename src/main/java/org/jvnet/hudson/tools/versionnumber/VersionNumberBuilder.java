@@ -205,22 +205,10 @@ public class VersionNumberBuilder extends BuildWrapper {
         return this.environmentPrefixVariable;
     }
     
-    /**
-     *  根据前缀查找匹配的上次构建过程prevBuild
-     * @param build
-     * @param envPrefix
-     * @return
-     */
     private Run getPreviousBuildWithVersionNumber(Run build, String envPrefix) {
         return VersionNumberCommon.getPreviousBuildWithVersionNumber(build, envPrefix);
     }
     
-    /**
-     * 返回当前调用VersionNumber()的前缀
-     * @param build
-     * @param listener
-     * @return
-     */
     private String getEnvPrefix(Run build, BuildListener listener){
         String envPrefix;
         
