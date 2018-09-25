@@ -204,7 +204,24 @@ public class VersionNumberBuilder extends BuildWrapper {
     public String getEnvironmentPrefixVariable() {
         return this.environmentPrefixVariable;
     }
-    private Run getPreviousBuildWithVersionNumber(Run build, BuildListener listener) {
+    
+    /**
+     *  根据前缀查找匹配的上次构建过程prevBuild
+     * @param build
+     * @param envPrefix
+     * @return
+     */
+    private Run getPreviousBuildWithVersionNumber(Run build, String envPrefix) {
+        return VersionNumberCommon.getPreviousBuildWithVersionNumber(build, envPrefix);
+    }
+    
+    /**
+     * 返回当前调用VersionNumber()的前缀
+     * @param build
+     * @param listener
+     * @return
+     */
+    private String getEnvPrefix(Run build, BuildListener listener){
         String envPrefix;
         
         if (this.environmentPrefixVariable != null) {
@@ -220,8 +237,8 @@ public class VersionNumberBuilder extends BuildWrapper {
         } else {
             envPrefix = null;
         }
-
-        return VersionNumberCommon.getPreviousBuildWithVersionNumber(build, envPrefix);
+        
+        return envPrefix;
     }
     
     private boolean isOverrideString(String override) {
@@ -234,10 +251,11 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
     
     @SuppressWarnings("unchecked")
-    private VersionNumberBuildInfo incBuild(Run build, BuildListener listener) throws IOException, InterruptedException {
+    private VersionNumberBuildInfo incBuild(Run build, BuildListener listener, String envPrefix) throws IOException, InterruptedException {
         EnvVars enVars = build.getEnvironment(listener);
-        Run prevBuild = getPreviousBuildWithVersionNumber(build, listener);
-        VersionNumberBuildInfo incBuildInfo = VersionNumberCommon.incBuild(build, enVars, prevBuild,
+        Run prevBuild = getPreviousBuildWithVersionNumber(build, envPrefix);
+        
+        VersionNumberBuildInfo incBuildInfo = VersionNumberCommon.incBuild(build, enVars, prevBuild, envPrefix,  
                 this.getWorstResultForIncrement(),
                 this.oBuildsToday,
                 this.oBuildsThisWeek,
@@ -321,13 +339,16 @@ public class VersionNumberBuilder extends BuildWrapper {
     public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) {
         String formattedVersionNumber = "";
         try {
-            VersionNumberBuildInfo info = incBuild(build, listener);
+        	
+        	String envPrefix = getEnvPrefix(build,listener);
+        	
+            VersionNumberBuildInfo info = incBuild(build, listener,envPrefix);
             formattedVersionNumber = VersionNumberCommon.formatVersionNumber(this.versionNumberString,
                                                          this.projectStartDate,
                                                          info,
                                                          build.getEnvironment(listener),
                                                          build.getTimestamp());
-            build.addAction(new VersionNumberAction(info, formattedVersionNumber));
+            build.addAction(new VersionNumberAction(info, formattedVersionNumber, envPrefix));
             if (useAsBuildDisplayName) {
                 build.setDisplayName(formattedVersionNumber);
             }
