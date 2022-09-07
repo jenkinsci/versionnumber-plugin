@@ -180,7 +180,7 @@ public class VersionNumberCommon {
                 else {
                     LOGGER.fine("Special case: A variable could not be resolved. (Does it resolve to itself?)" +
                                 " [var == " + expressionKey + "]");
-                    if (enVars != null) {
+
                         for (Map.Entry entry : enVars.entrySet()) {
                             if (entry.getKey().equals(expressionKey)) {
                                 // Check for variable which resolves to itself!
@@ -195,7 +195,7 @@ public class VersionNumberCommon {
                                     replaceValue = selectSubstringOfReplaceValue(replaceValue, argumentString);
                                 }
                             }
-                        }
+
                     }
                 }
                 vnf = vnf.substring(0, blockStart) + replaceValue + vnf.substring(blockEnd, vnf.length());
