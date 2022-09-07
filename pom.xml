@@ -14,8 +14,7 @@
   <packaging>hpi</packaging>
 
   <properties>
-     <java.level>8</java.level>
-     <jenkins.version>2.303.1</jenkins.version>
+     <jenkins.version>2.332.4</jenkins.version>
   </properties>
 
   <name>Version Number Plug-In</name>
@@ -80,32 +79,38 @@
     </pluginRepository>
   </pluginRepositories>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-2.332.x</artifactId>
+        <version>1607.va_c1576527071</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <!-- If you want to depend on other plugins: -->
   <dependencies>
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-api</artifactId>
-      <version>1.15</version>
     </dependency>
     <!-- Testing scope -->
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
-      <artifactId>workflow-aggregator</artifactId>
-      <version>1.14</version>
+      <artifactId>workflow-cps</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
-      <artifactId>workflow-support</artifactId>
-      <version>1.14</version>
-      <classifier>tests</classifier>
+      <artifactId>workflow-job</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- Required by workflow-cps-global-lib (transitive of git-server) -->
     <dependency>
-      <groupId>org.jenkins-ci.modules</groupId>
-      <artifactId>sshd</artifactId>
-      <version>1.6</version>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-basic-steps</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
