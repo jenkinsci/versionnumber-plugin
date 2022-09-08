@@ -14,12 +14,13 @@
   <packaging>hpi</packaging>
 
   <properties>
-     <jenkins.version>2.332.4</jenkins.version>
+    
+    <jenkins.version>2.332.4</jenkins.version>
   </properties>
 
   <name>Version Number Plug-In</name>
   <description>Jenkins plugin which generates formatted version numbers for build jobs.</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/Version+Number+Plugin</url>
+  <url>https://github.com/jenkinsci/versionnumber-plugin</url>
 
   <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
 
