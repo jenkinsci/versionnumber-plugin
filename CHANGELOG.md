@@ -1,4 +1,4 @@
-# Releases of VersionNumber-PLUGIN
+# Releases of Version Number Plugin
 
 ## Version 1.9
 

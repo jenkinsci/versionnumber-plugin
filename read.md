@@ -1,4 +1,4 @@
-# VersionNumber-PLUGIN
+# Version Number Plugin
 
 This plugin creates a new version number and stores it in the
 environment variable whose name you specify in the configuration.
