@@ -18,7 +18,7 @@
     <jenkins.version>2.332.4</jenkins.version>
   </properties>
 
-  <name>Version Number Plug-In</name>
+  <name>Version Number Plugin</name>
   <description>Jenkins plugin which generates formatted version numbers for build jobs.</description>
   <url>https://github.com/jenkinsci/versionnumber-plugin</url>
 
