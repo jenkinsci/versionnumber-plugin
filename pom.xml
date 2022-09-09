@@ -88,11 +88,10 @@
     </dependencies>
   </dependencyManagement>
 
-  <!-- If you want to depend on other plugins: -->
   <dependencies>
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
-      <artifactId>workflow-api</artifactId>
+      <artifactId>workflow-step-api</artifactId>
     </dependency>
     <!-- Testing scope -->
     <dependency>
