@@ -1,10 +1,17 @@
 # Releases of Version Number Plugin
 
+## Version 1.10
+
+-   Release Sep 8, 2022
+-   Migrate docs to GitHub        [PR-27](https://github.com/jenkinsci/versionnumber-plugin/pull/27) [@AayushSaini101](https://github.com/AayushSaini101)
+-   Modernize plugin development  [PR-26](https://github.com/jenkinsci/versionnumber-plugin/pull/26) [@AayushSaini101](https://github.com/AayushSaini101)
+-   Enable Gitpod for development [PR-25](https://github.com/jenkinsci/versionnumber-plugin/pull/25) [@jmMeessen](https://github.com/jmMeessen)
+-   Use HTTPS for development     [PR-23](https://github.com/jenkinsci/versionnumber-plugin/pull/23) [@daniel-beck](https://github.com/daniel-beck)
+
 ## Version 1.9
 
 -   Release Nov 17, 2017
--   Accepted [merge-request
-    \#12](https://github.com/jenkinsci/versionnumber-plugin/pull/12). ("Adding
+-   Accepted [PR-12](https://github.com/jenkinsci/versionnumber-plugin/pull/12). ("Adding
     functionality to limit the number of characters from a variable.")
 -   Fixed
     bug [JENKINS-18171](https://issues.jenkins-ci.org/browse/JENKINS-18171). ("Version
@@ -19,13 +26,6 @@
         **(This assures that later updates of this plugin will not break
         your behavior due to this change.)
 
- 
-
--   **IMPORTANT: **This might be the last update for this plugin in a
-    long time, because I (user: bahadir) cannot maintain it any
-    longer.**  
-    Please volunteer to become the new maintainer of this plugin!**
-
 ## Version 1.8.1
 
 -   Release Oct 11, 2016
@@ -36,7 +36,7 @@
 ## Version 1.8
 
 -   Release Oct 11, 2016
--   Pipeline-jobs now allow overriding values of BUILDS\_ALL\_TIME etc.
+-   Pipeline-jobs now allow overriding values of `BUILDS_ALL_TIME` etc.
     by environment variables (or fixed values), too, similar to
     Freestyle-jobs.  
     (Use variables `overrideBuildsToday`, `overrideBuildsThisWeek`,
@@ -74,10 +74,10 @@
 ## Version 1.6
 
 -   Release Oct 26, 2015
--   Support for BUILD\_WEEK and BUILDS\_THIS\_WEEK.
+-   Support for `BUILD_WEEK` and `BUILDS_THIS_WEEK`.
 -   Added
     feature [JENKINS-29134](https://issues.jenkins-ci.org/browse/JENKINS-29134). ("Overriding
-    values of BUILDS\_ALL\_TIME etc. by environment variables.")
+    values of `BUILDS_ALL_TIME` etc. by environment variables.")
 -   Fixed issue
     [JENKINS-30224](https://issues.jenkins-ci.org/browse/JENKINS-30224). ("NPE
     thrown when a job uses an automatically installed JDK.")
@@ -93,4 +93,4 @@
 
 -   Released Dec 21, 2009
 -   Largely for compatibility reasons - was using rather old deprecated
-    methods and wouldn't actually work with modern Hudson builds.
+    methods and wouldn't actually work with modern builds.
