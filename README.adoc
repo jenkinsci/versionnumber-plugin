@@ -54,20 +54,10 @@ The following are valid variables for use in the version number format string:
 
 == Initialization Values
 
-Before the build is started, the number of builds this year / month /
-week / day can be specified on the command line or via the job's
-plugin-configuration web-GUI. If they are specified, then they will
-override whatever values are currently in production. This allows you to
-migrate your version number from another system to Jenkins if you choose
-to do so.
+Before the build is started, the number of builds this year / month / week / day can be specified on the command line or via the job's plugin-configuration web-GUI.
+If they are specified, then they will override whatever values are currently in production.
+This allows you to migrate your version number from another system to Jenkins if you choose to do so.
 
-Additionally, it is possible to automatically override the number of
-builds this year / month / week / day with values taken from
-environment-variables. Instead of just providing a simple number in the
-form-fields of the job's plugin-configuration which overrides the value
-for the next build (as described above), you can instead provide an
-environment-variable whose value will be extracted and used during the
-next builds. If it is not set or its value is not convertible to a
-positive integer (without loosing precision), the value of the previous
-build will be taken instead and increased by one (as is the standard
-behavior).
+Additionally, it is possible to automatically override the number of builds this year / month / week / day with values taken from environment-variables.
+Instead of just providing a simple number in the form-fields of the job's plugin-configuration which overrides the value for the next build (as described above), you can instead provide an environment-variable whose value will be extracted and used during the next builds.
+If it is not set or its value is not convertible to a positive integer (without loosing precision), the value of the previous build will be taken instead and increased by one (as is the standard behavior).
