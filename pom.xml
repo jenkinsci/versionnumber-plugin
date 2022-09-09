@@ -22,8 +22,6 @@
   <description>Jenkins plugin which generates formatted version numbers for build jobs.</description>
   <url>https://github.com/jenkinsci/versionnumber-plugin</url>
 
-  <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
-
   <licenses>
     <license>
       <name>MIT License</name>
@@ -32,7 +30,6 @@
     </license>
   </licenses>
 
-  <!-- If you want this to appear on the wiki page: -->
   <developers>
     <developer>
       <id>bahadir</id>
@@ -59,7 +56,6 @@
     </developer>
   </developers>
 
-  <!-- Assuming you want to host on @jenkinsci: -->
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
