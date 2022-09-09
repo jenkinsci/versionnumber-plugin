@@ -3,10 +3,10 @@
 ## Version 1.10
 
 -   Release Sep 8, 2022
--   Migrate docs to GitHub        [PR-27](https://github.com/jenkinsci/versionnumber-plugin/pull/27) [@AayushSaini101](https://github.com/AayushSaini101)
--   Modernize plugin development  [PR-26](https://github.com/jenkinsci/versionnumber-plugin/pull/26) [@AayushSaini101](https://github.com/AayushSaini101)
--   Enable Gitpod for development [PR-25](https://github.com/jenkinsci/versionnumber-plugin/pull/25) [@jmMeessen](https://github.com/jmMeessen)
--   Use HTTPS for development     [PR-23](https://github.com/jenkinsci/versionnumber-plugin/pull/23) [@daniel-beck](https://github.com/daniel-beck)
+-   Migrate docs to GitHub        ([PR-27](https://github.com/jenkinsci/versionnumber-plugin/pull/27)) [@AayushSaini101](https://github.com/AayushSaini101)
+-   Modernize plugin development  ([PR-26](https://github.com/jenkinsci/versionnumber-plugin/pull/26)) [@AayushSaini101](https://github.com/AayushSaini101)
+-   Enable Gitpod for development ([PR-25](https://github.com/jenkinsci/versionnumber-plugin/pull/25)) [@jmMeessen](https://github.com/jmMeessen)
+-   Use HTTPS for development     ([PR-23](https://github.com/jenkinsci/versionnumber-plugin/pull/23)) [@daniel-beck](https://github.com/daniel-beck)
 
 ## Version 1.9
 
