@@ -10,7 +10,7 @@
   </parent>
   <groupId>org.jvnet.hudson.tools</groupId>
   <artifactId>versionnumber</artifactId>
-  <version>1.10-SNAPSHOT</version>
+  <version>1.10</version>
   <packaging>hpi</packaging>
 
   <properties>
@@ -60,7 +60,7 @@
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
     <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    <tag>HEAD</tag>
+    <tag>versionnumber-1.10</tag>
   </scm>
 
   <repositories>
