@@ -188,7 +188,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
         
     /**
-     * We'll use this from the <tt>config.jelly</tt>.
+     * We'll use this from the <code>config.jelly</code>.
      */
     public String getVersionNumberString() {
         return versionNumberString;
