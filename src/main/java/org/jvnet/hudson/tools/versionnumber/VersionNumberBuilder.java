@@ -224,15 +224,6 @@ public class VersionNumberBuilder extends BuildWrapper {
         return VersionNumberCommon.getPreviousBuildWithVersionNumber(build, envPrefix);
     }
     
-    private boolean isOverrideString(String override) {
-        boolean result = false;
-        
-        if (override != null && !override.equals("")) {
-            result = true;
-        }
-        return result;
-    }
-    
     @SuppressWarnings("unchecked")
     private VersionNumberBuildInfo incBuild(Run build, BuildListener listener) throws IOException, InterruptedException {
         EnvVars enVars = build.getEnvironment(listener);
