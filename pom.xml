@@ -15,7 +15,6 @@
 
   <properties>
     <spotbugs.effort>Max</spotbugs.effort>
-    <spotbugs.failOnError>true</spotbugs.failOnError>
     <jenkins.version>2.332.4</jenkins.version>
   </properties>
 
