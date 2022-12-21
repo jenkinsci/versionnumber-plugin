@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.51</version>
+    <version>4.52</version>
     <relativePath />
   </parent>
   <groupId>org.jvnet.hudson.tools</groupId>
@@ -19,7 +19,7 @@
     <revision>1.11</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/versionnumber-plugin</gitHubRepo>
-    <jenkins.version>2.332.4</jenkins.version>
+    <jenkins.version>2.361.4</jenkins.version>
   </properties>
 
   <name>Version Number Plugin</name>
@@ -84,7 +84,7 @@
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.332.x</artifactId>
+        <artifactId>bom-2.361.x</artifactId>
         <version>1750.v0071fa_4c4a_e3</version>
         <type>pom</type>
         <scope>import</scope>
