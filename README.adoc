@@ -1,0 +1,63 @@
+= Version Number Plugin
+
+This plugin creates a new version number and stores it in the environment variable whose name you specify in the configuration.
+
+== Configuration
+
+In many cases, the Jenkins build number isn't rich enough to express the information you'd like the version number to have, and generating externally (as part of the build) may not be an optimal solution.
+This plugin allows you to generate a version number that contains much more information.
+
+== Project start date
+
+The version number system has the concept of builds per day / week / month / year / all time.
+Each of these is the calendar day / week / month / year; that is, all builds in October will have the same build month, all builds in 2009 will have the same build year.
+These are based on the project start date, which is one of the user-configurable options.
+
+== Version Number Format String
+
+The version number format string is processed to create the version number that's stored in the named environment variable.
+Every character in the version number format string is passed through to the final version number, with the exception of variables enclosed in ${}.
+For example, the version format string `1.0.${BUILDS_THIS_YEAR}`, if this were the 10th build this calendar year, would return 1.0.10.
+
+The following are valid variables for use in the version number format string:
+
+`BUILD_DATE_FORMATTED`:: Takes the second argument and returns a java-formatted date string for the given build date.
+        For example, `${BUILD_DATE_FORMATTED, "yyyy-MM-dd"}` would return the date (and not the time) as something like 2009-10-01.
+        The date format string must be surrounded by quotes, and any whitespace within the format string is significant.
+`BUILD_DAY`:: With no arguments, it just returns the day of the build as an integer.
+        If there is an argument, it takes the number of characters in the argument and uses that pad the date string.
+        For example, if it's the third of the month, `${BUILD_DAY}` would return 3, `${BUILD_DAY, X}` would return 3, and `${BUILD_DAY, XX}` would return 03.
+`BUILD_WEEK`:: Returns the week, with the same argument convention for `BUILD_DAY`.
+`BUILD_MONTH`:: Returns the month, with the same argument convention for `BUILD_DAY`.
+`BUILD_YEAR`:: Returns the year, with the same argument convention for `BUILD_DAY`.
+`BUILDS_TODAY`:: Returns the number of builds that have happened today, including this one.
+        This resets at midnight. The argument convention is the same as for `BUILD_DAY`.
+`BUILDS_THIS_WEEK`:: Returns the number of builds that have happened this week, including this one.
+        This resets at the start of the week.
+        The argument convention is the same as for `BUILD_DAY`.
+`BUILDS_THIS_MONTH`:: Returns the number of builds that have happened this month, including this one.
+        This resets at the first of the month.
+        The argument convention is the same as for `BUILD_DAY`.
+`BUILDS_THIS_YEAR`:: Returns the number of builds that have happened this year.
+        This resets at the first of the year.
+        The argument convention is the same as for `BUILD_DAY`.
+`BUILDS_ALL_TIME`:: Returns the number of builds that have happened since the project has begun.
+        This is distinct from the hudson build number, in that it can be reset periodically (for example, when moving from `1.0.${BUILDS_ALL_TIME}` to `2.0.${BUILDS_ALL_TIME}`, and can be configured to start at an arbitrary number instead of the standard begin date.
+`MONTHS_SINCE_PROJECT_START`:: The number of months since the project start date.
+        This is strictly dependent on the month of the current build and the month of the project start date; if the project was begun October 31st and the build was November 1st, then this would return 1.
+        If the project was begin October 1st and the build was November 30th, this would also return 1.
+        The argument convention is the same as for `BUILD_DAY`.
+`YEARS_SINCE_PROJECT_START`:: The number of years since the project start date.
+        Like `MONTHS_SINCE_PROJECT_START`, this is dependent only on the year.
+(anything else):: Any other argument enclosed in ${} is replaced by an environment variable of the same name if one is available, or failing that, is just ignored.
+        This can be used to integrate source control version numbers, for example.
+
+== Initialization Values
+
+Before the build is started, the number of builds this year / month / week / day can be specified on the command line or via the job's plugin-configuration web-GUI.
+If they are specified, then they will override whatever values are currently in production.
+This allows you to migrate your version number from another system to Jenkins if you choose to do so.
+
+Additionally, it is possible to automatically override the number of builds this year / month / week / day with values taken from environment-variables.
+Instead of just providing a simple number in the form-fields of the job's plugin-configuration which overrides the value for the next build (as described above), you can instead provide an environment-variable whose value will be extracted and used during the next builds.
+If it is not set or its value is not convertible to a positive integer (without loosing precision), the value of the previous build will be taken instead and increased by one (as is the standard behavior).

@@ -10,7 +10,8 @@
 	<f:entry title="${%Project Start Date}" field="projectStartDate">
 		<f:textbox/>
 	</f:entry>
-	<f:entry title="${%Skip Failed Builds}" field="skipFailedBuilds">
-		<f:checkbox/>
-	</f:entry>
+    <f:entry title="${%Skip Builds worse than}" field="worstResultForIncrement">
+      <f:select/>
+          Don't increment builds today / this week / this month / this year / all time after a build-run with a result worse than the selected one.
+    </f:entry>
 </j:jelly>

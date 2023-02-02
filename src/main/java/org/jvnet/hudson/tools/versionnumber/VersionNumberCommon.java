@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import java.lang.invoke.MethodHandles;
 
 import hudson.EnvVars;
+import hudson.model.Result;
 import hudson.model.Run;
 
 /**
@@ -19,20 +20,26 @@ public class VersionNumberCommon {
     /** Use Java 7 MethodHandles to get my class for logger. */
     private static final Logger LOGGER = Logger.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
     
-    private static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+    public static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+
+    public static final String WORST_RESULT_SUCCESS   = "SUCCESS";
+    public static final String WORST_RESULT_UNSTABLE  = "UNSTABLE";
+    public static final String WORST_RESULT_FAILURE   = "FAILURE";
+    public static final String WORST_RESULT_ABORTED   = "ABORTED";
+    public static final String WORST_RESULT_NOT_BUILT = "NOT_BUILT";
 
     // Pattern:   ${VAR_NAME} or $VAR_NAME
     public static final String ENV_VAR_PATTERN = "^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$";
     
     public static VersionNumberBuildInfo incBuild(Run build, EnvVars vars,
-            Run prevBuild, boolean skipFailedBuilds, String overrideBuildsToday, String overrideBuildsThisWeek,
+            Run prevBuild, Result worstResultForIncrement, String overrideBuildsToday, String overrideBuildsThisWeek,
             String overrideBuildsThisMonth, String overrideBuildsThisYear, String overrideBuildsAllTime) {
-        
-        int buildsToday = new BuildsTodayGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsToday);
-        int buildsThisWeek = new BuildsThisWeekGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisWeek);
-        int buildsThisMonth = new BuildsThisMonthGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisMonth);
-        int buildsThisYear = new BuildsThisYearGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsThisYear);
-        int buildsAllTime = new BuildsAllTimeGenerator().getNextNumber(build, vars, prevBuild, skipFailedBuilds, overrideBuildsAllTime);
+       
+        int buildsToday = new BuildsTodayGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsToday);
+        int buildsThisWeek = new BuildsThisWeekGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsThisWeek);
+        int buildsThisMonth = new BuildsThisMonthGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsThisMonth);
+        int buildsThisYear = new BuildsThisYearGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsThisYear);
+        int buildsAllTime = new BuildsAllTimeGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsAllTime);
                 
         return new VersionNumberBuildInfo(buildsToday, buildsThisWeek, buildsThisMonth, buildsThisYear, buildsAllTime);
     }
@@ -175,7 +182,7 @@ public class VersionNumberCommon {
                 else {
                     LOGGER.fine("Special case: A variable could not be resolved. (Does it resolve to itself?)" +
                                 " [var == " + expressionKey + "]");
-                    if (enVars != null) {
+
                         for (Map.Entry entry : enVars.entrySet()) {
                             if (entry.getKey().equals(expressionKey)) {
                                 // Check for variable which resolves to itself!
@@ -186,9 +193,11 @@ public class VersionNumberCommon {
                                     LOGGER.fine("No, the variable does not resolve to itself. Using it." +
                                                 " [var == " + expressionKey + "]");
                                     replaceValue = (String)entry.getValue();
+                                    // Probably just use a substring of the value?
+                                    replaceValue = selectSubstringOfReplaceValue(replaceValue, argumentString);
                                 }
                             }
-                        }
+
                     }
                 }
                 vnf = vnf.substring(0, blockStart) + replaceValue + vnf.substring(blockEnd, vnf.length());
@@ -197,6 +206,34 @@ public class VersionNumberCommon {
         
         LOGGER.info("Version-number format-string after expansion of all variables: '" + vnf + "'");
         return vnf;
+    }
+    
+    private static String selectSubstringOfReplaceValue(String replaceValue, String argumentString) {
+        LOGGER.info("Before selecting a substring of the replace-value. [replaceValue == " + replaceValue + ", argumentString == " + argumentString + "]");
+        
+        // We will use the below lines to limit the number of character we want to 
+        // use from the front or the back of the replace-value (aka environment variable).
+
+        // Make sure there is an argument string and that it is surrounded by double-quotes!
+        if (!"".equals(argumentString) && argumentString.length() >= 3 &&
+                argumentString.charAt(0) == '"' && argumentString.charAt(argumentString.length() - 1) == '"') {
+            // Strip quotes from argument-string.
+            String fmtString = argumentString.substring(1, argumentString.length() - 1);
+            // Make sure it only contains a positive or negative whole number.
+            if (fmtString.matches("^(\\+|-)?\\d+$")) {
+                Integer fmtInt = Integer.parseInt(fmtString);
+                // if it's not smaller than the length of the value, we will use the whole value
+                if (Math.abs(fmtInt.intValue()) < replaceValue.length()) {
+                    if (fmtInt > 0) {
+                        replaceValue = replaceValue.substring(0, fmtInt);
+                    } else if (fmtInt < 0) {
+                        replaceValue = replaceValue.substring(replaceValue.length() + fmtInt);
+                    }
+                }
+            }
+        }
+        LOGGER.info("After selecting a substring of the replace-value. [replaceValue == " + replaceValue + "]");
+        return replaceValue;
     }
     
     /**
