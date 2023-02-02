@@ -188,7 +188,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     }
         
     /**
-     * We'll use this from the <tt>config.jelly</tt>.
+     * We'll use this from the <code>config.jelly</code>.
      */
     public String getVersionNumberString() {
         return versionNumberString;
@@ -222,15 +222,6 @@ public class VersionNumberBuilder extends BuildWrapper {
         }
 
         return VersionNumberCommon.getPreviousBuildWithVersionNumber(build, envPrefix);
-    }
-    
-    private boolean isOverrideString(String override) {
-        boolean result = false;
-        
-        if (override != null && !override.equals("")) {
-            result = true;
-        }
-        return result;
     }
     
     @SuppressWarnings("unchecked")
