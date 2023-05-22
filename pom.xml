@@ -24,7 +24,9 @@
 
   <name>Version Number Plugin</name>
   <description>Jenkins plugin which generates formatted version numbers for build jobs.</description>
-  <url>https://github.com/jenkinsci/versionnumber-plugin</url>
+  <!-- Docs were not being published to plugins site with shorter URL -->
+  <!-- Use the precise location of the documentation page -->
+  <url>https://github.com/jenkinsci/versionnumber-plugin/blob/master/README.adoc</url>
 
   <licenses>
     <license>
