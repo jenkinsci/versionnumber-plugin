@@ -25,6 +25,7 @@
 package org.jvnet.hudson.tools.versionnumber;
 
 import com.google.inject.Inject;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
@@ -63,9 +64,11 @@ public class VersionNumberStep extends AbstractStepImpl {
 
     @DataBoundSetter
     @Deprecated
+    @SuppressFBWarnings(value = "PA_PUBLIC_PRIMITIVE_ATTRIBUTE", justification = "Preserve API compatibility.")
     public boolean skipFailedBuilds = false;
 
     @DataBoundSetter
+    @SuppressFBWarnings(value = "PA_PUBLIC_PRIMITIVE_ATTRIBUTE", justification = "Preserve API compatibility.")
     public String worstResultForIncrement = null;
 
     @DataBoundSetter
