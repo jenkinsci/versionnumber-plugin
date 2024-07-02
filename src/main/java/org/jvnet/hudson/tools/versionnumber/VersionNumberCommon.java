@@ -8,7 +8,10 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.lang.invoke.MethodHandles;
 
+import javax.swing.text.html.HTMLDocument.HTMLReader.PreAction;
+
 import hudson.EnvVars;
+import hudson.model.Action;
 import hudson.model.Result;
 import hudson.model.Run;
 
@@ -32,14 +35,14 @@ public class VersionNumberCommon {
     public static final String ENV_VAR_PATTERN = "^(?:\\$\\{(\\w+)\\})|(?:\\$(\\w+))$";
     
     public static VersionNumberBuildInfo incBuild(Run build, EnvVars vars,
-            Run prevBuild, Result worstResultForIncrement, String overrideBuildsToday, String overrideBuildsThisWeek,
-            String overrideBuildsThisMonth, String overrideBuildsThisYear, String overrideBuildsAllTime) {
-       
-        int buildsToday = new BuildsTodayGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsToday);
-        int buildsThisWeek = new BuildsThisWeekGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsThisWeek);
-        int buildsThisMonth = new BuildsThisMonthGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsThisMonth);
-        int buildsThisYear = new BuildsThisYearGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsThisYear);
-        int buildsAllTime = new BuildsAllTimeGenerator().getNextNumber(build, vars, prevBuild, worstResultForIncrement, overrideBuildsAllTime);
+            Run prevBuild, String envPrefix, Result worstResultForIncrement, String overrideBuildsToday, String overrideBuildsThisWeek,
+            String overrideBuildsThisMonth, String overrideBuildsThisYear, String overrideBuildsAllTime) {     
+    	
+        int buildsToday = new BuildsTodayGenerator().getNextNumber(build, vars, prevBuild, envPrefix,worstResultForIncrement, overrideBuildsToday);
+        int buildsThisWeek = new BuildsThisWeekGenerator().getNextNumber(build, vars, prevBuild, envPrefix,worstResultForIncrement, overrideBuildsThisWeek);
+        int buildsThisMonth = new BuildsThisMonthGenerator().getNextNumber(build, vars, prevBuild, envPrefix,worstResultForIncrement, overrideBuildsThisMonth);
+        int buildsThisYear = new BuildsThisYearGenerator().getNextNumber(build, vars, prevBuild, envPrefix,worstResultForIncrement, overrideBuildsThisYear);
+        int buildsAllTime = new BuildsAllTimeGenerator().getNextNumber(build, vars, prevBuild, envPrefix,worstResultForIncrement, overrideBuildsAllTime);
                 
         return new VersionNumberBuildInfo(buildsToday, buildsThisWeek, buildsThisMonth, buildsThisYear, buildsAllTime);
     }
@@ -49,9 +52,27 @@ public class VersionNumberCommon {
         Run prevBuild = build.getPreviousBuild();
         
         while (prevBuild != null) {
-            VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
-
-            if (prevAction == null) 
+            // VersionNumberAction prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
+        	// prevAction = (VersionNumberAction)prevBuild.getAction(VersionNumberAction.class);
+        	// 改为获取所有的VersionNumberAction
+        	for (Action a : prevBuild.getAllActions()) {
+				if (!VersionNumberAction.class.isInstance(a) || a == null) {
+					continue;
+				}
+				VersionNumberAction prevAction = VersionNumberAction.class.cast(a);				
+	            
+                if (envPrefix != null) {
+                    if (envPrefix.equals(prevAction.getEnvPrefix())) {
+                        LOGGER.info("Previous build's version-number: '" + prevAction.getVersionNumber() + "'");
+                        return prevBuild;
+                    }
+                } else if(envPrefix == null && prevAction.getEnvPrefix() == null){
+                    LOGGER.info("Previous build's version-number: '" + prevAction.getVersionNumber() + "'");
+                    return prevBuild;
+                }
+			}
+        	
+            /*if (prevAction == null) 
                 LOGGER.fine("prevAction.getVersionNumber() : 'null'");
             else
                 LOGGER.fine("prevAction.getVersionNumber() : '" + prevAction.getVersionNumber() + "'");
@@ -68,7 +89,7 @@ public class VersionNumberCommon {
                     LOGGER.info("Previous build's version-number: '" + prevAction.getVersionNumber() + "'");
                     return prevBuild;
                 }
-            }
+            }*/
             
             prevBuild = prevBuild.getPreviousBuild();
         }
