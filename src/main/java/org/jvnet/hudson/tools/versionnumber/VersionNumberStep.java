@@ -31,7 +31,6 @@ import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousStepExecution;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
-
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -179,8 +178,10 @@ public class VersionNumberStep extends AbstractStepImpl {
         protected String run() throws Exception {
             if (step.versionNumberString != null) {
                 try {
+                	VersionNumberAction prevAction=null;
+                	
                     Run prevBuild = VersionNumberCommon.getPreviousBuildWithVersionNumber(run, step.versionPrefix);
-                    VersionNumberBuildInfo info = VersionNumberCommon.incBuild(run, env, prevBuild,
+                    VersionNumberBuildInfo info = VersionNumberCommon.incBuild(run, env, prevBuild, step.versionPrefix,  
                             step.getWorstResultForIncrement(),
                             step.overrideBuildsToday,
                             step.overrideBuildsThisWeek,
@@ -203,7 +204,7 @@ public class VersionNumberStep extends AbstractStepImpl {
                     if (step.versionPrefix != null) {
                         formattedVersionNumber = step.versionPrefix + formattedVersionNumber;
                     }
-                    run.addAction(new VersionNumberAction(info, formattedVersionNumber));
+                    run.addAction(new VersionNumberAction(info, formattedVersionNumber,step.versionPrefix));
                     return formattedVersionNumber;
                 } catch (Exception e) {
                 }
