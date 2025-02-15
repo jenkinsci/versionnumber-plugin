@@ -12,7 +12,7 @@ import java.lang.invoke.MethodHandles;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 import hudson.EnvVars;
 import hudson.Extension;
@@ -420,7 +420,7 @@ public class VersionNumberBuilder extends BuildWrapper {
         }
         
         @Override
-        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+        public boolean configure(StaplerRequest2 req, JSONObject json) throws FormException {
             return super.configure(req, json);
         }
         
