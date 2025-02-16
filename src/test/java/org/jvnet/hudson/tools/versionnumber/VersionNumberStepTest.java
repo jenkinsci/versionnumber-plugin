@@ -31,8 +31,10 @@ public class VersionNumberStepTest {
                 String todayDate = new SimpleDateFormat("yy-MM-dd").format(new Date());
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber('${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}')\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber('${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}')
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -60,8 +62,10 @@ public class VersionNumberStepTest {
                 String todayDate = new SimpleDateFormat("yy-MM-dd").format(new Date());
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber skipFailedBuilds: true, versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber skipFailedBuilds: true, versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -70,8 +74,10 @@ public class VersionNumberStepTest {
 
                 // Force a failure!
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber skipFailedBuilds: true, versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "throw new RuntimeException(\"Fail!\")"
+                        """
+                        def versionNumber = VersionNumber skipFailedBuilds: true, versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        throw new RuntimeException("Fail!")
+                        """
                 ));
                 
                 WorkflowRun b2 = p.scheduleBuild2(0).waitForStart();
@@ -80,8 +86,10 @@ public class VersionNumberStepTest {
 
                 // Restore the working job
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber skipFailedBuilds: true, versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber skipFailedBuilds: true, versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 
                 // Make sure we didn't increment!
@@ -102,8 +110,10 @@ public class VersionNumberStepTest {
                 String todayDate = new SimpleDateFormat("yy-MM-dd").format(new Date());
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber skipFailedBuilds: false, versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber skipFailedBuilds: false, versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -112,8 +122,10 @@ public class VersionNumberStepTest {
 
                 // Force a failure!
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber skipFailedBuilds: false, versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "throw new RuntimeException(\"Fail!\")"
+                        """
+                        def versionNumber = VersionNumber skipFailedBuilds: false, versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        throw new RuntimeException("Fail!")
+                        """
                 ));
                 
                 WorkflowRun b2 = p.scheduleBuild2(0).waitForStart();
@@ -122,8 +134,10 @@ public class VersionNumberStepTest {
 
                 // Restore the working job
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber skipFailedBuilds: false, versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber skipFailedBuilds: false, versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 
                 // Make sure that we incremented anyhow!
@@ -146,8 +160,10 @@ public class VersionNumberStepTest {
 
                 // A working job.
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber worstResultForIncrement: 'SUCCESS', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber worstResultForIncrement: 'SUCCESS', versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -157,9 +173,11 @@ public class VersionNumberStepTest {
                 // Because the former run succeeded, the following run's build-number will be increased,
                 // even though we force a failure!
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber worstResultForIncrement: 'SUCCESS', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\"\n" +
-                        "throw new RuntimeException(\"Fail (worstResultForIncrement: 'SUCCESS')!\")"
+                        """
+                        def versionNumber = VersionNumber worstResultForIncrement: 'SUCCESS', versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        throw new RuntimeException("Fail (worstResultForIncrement: 'SUCCESS')!")
+                        """
                 ));
                 WorkflowRun b2 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b2);
@@ -169,9 +187,11 @@ public class VersionNumberStepTest {
                 // Because the former run did fail, the following run's build-number will NOT be increased,
                 // regardless of the failure we force again!
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber worstResultForIncrement: 'UNSTABLE', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\"\n" +
-                        "throw new RuntimeException(\"Fail (worstResultForIncrement: 'UNSTABLE')!\")"
+                        """
+                        def versionNumber = VersionNumber worstResultForIncrement: 'UNSTABLE', versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        throw new RuntimeException("Fail (worstResultForIncrement: 'UNSTABLE')!")
+                        """
                 ));
                 WorkflowRun b3 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b3);
@@ -182,9 +202,11 @@ public class VersionNumberStepTest {
                 // because FAILURE is the worst result which does not prevent incrementing the build-number,
                 // regardless of the failure we force again!
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber worstResultForIncrement: 'FAILURE', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\"\n" +
-                        "throw new RuntimeException(\"Fail (worstResultForIncrement: 'FAILURE')!\")"
+                        """
+                        def versionNumber = VersionNumber worstResultForIncrement: 'FAILURE', versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        throw new RuntimeException("Fail (worstResultForIncrement: 'FAILURE')!")
+                        """
                 ));
                 WorkflowRun b4 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b4);
@@ -195,9 +217,11 @@ public class VersionNumberStepTest {
                 // because ABORTED is the worst result which does not prevent incrementing the build-number,
                 // regardless of the failure we force again!
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber worstResultForIncrement: 'ABORTED', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\"\n" +
-                        "throw new RuntimeException(\"Fail (worstResultForIncrement: 'ABORTED')!\")"
+                        """
+                        def versionNumber = VersionNumber worstResultForIncrement: 'ABORTED', versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        throw new RuntimeException("Fail (worstResultForIncrement: 'ABORTED')!")
+                        """
                 ));
                 WorkflowRun b5 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b5);
@@ -208,8 +232,10 @@ public class VersionNumberStepTest {
                 // because ABORTED is the worst result which does not prevent incrementing the build-number,
                 // whether we force a failure again or not!
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber worstResultForIncrement: 'ABORTED', versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber worstResultForIncrement: 'ABORTED', versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b6 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b6);
@@ -228,8 +254,10 @@ public class VersionNumberStepTest {
                 String todayDate = new SimpleDateFormat("yy-MM-dd").format(new Date());
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}', versionPrefix: '1.0.'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}', versionPrefix: '1.0.'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -242,8 +270,10 @@ public class VersionNumberStepTest {
                 story.j.assertLogContains("VersionNumber: 1.0." + todayDate + "-02", b2);
                 
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}', versionPrefix: '1.5.'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}', versionPrefix: '1.5.'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b3 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b3);
@@ -251,8 +281,10 @@ public class VersionNumberStepTest {
                 story.j.assertLogContains("VersionNumber: 1.5." + todayDate + "-01", b3);
                 
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}', versionPrefix: '1.0.'\n" +
-                        "echo \"VersionNumber: ${versionNumber}\""
+                        """
+                        def versionNumber = VersionNumber versionNumberString: '${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}', versionPrefix: '1.0.'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b4 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b4);
@@ -270,10 +302,12 @@ public class VersionNumberStepTest {
                 String todayDate = new SimpleDateFormat("yy-MM-dd").format(new Date());
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "withEnv(['envVar=Hello']) {\n" +
-                        "   def versionNumber = VersionNumber('${envVar}-${BUILD_DATE_FORMATTED, \"yy-MM-dd\"}-${BUILDS_TODAY, XX}')\n" +
-                        "   echo \"VersionNumber: ${versionNumber}\"\n" +
-                        "}"
+                        """
+                        withEnv(['envVar=Hello']) {
+                           def versionNumber = VersionNumber('${envVar}-${BUILD_DATE_FORMATTED, "yy-MM-dd"}-${BUILDS_TODAY, XX}')
+                           echo "VersionNumber: ${versionNumber}"
+                        }
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -290,10 +324,12 @@ public class VersionNumberStepTest {
             public void evaluate() throws Throwable {
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "withEnv(['NEXT_BUILD_NUMBER=5']) {\n" +
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILDS_ALL_TIME}', versionPrefix: '1.0.', overrideBuildsAllTime: '${NEXT_BUILD_NUMBER}'\n" +
-                        "   echo \"VersionNumber: ${versionNumber}\"\n" +
-                        "}"
+                        """
+                        withEnv(['NEXT_BUILD_NUMBER=5']) {
+                          def versionNumber = VersionNumber versionNumberString: '${BUILDS_ALL_TIME}', versionPrefix: '1.0.', overrideBuildsAllTime: '${NEXT_BUILD_NUMBER}'
+                          echo "VersionNumber: ${versionNumber}"
+                        }
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -310,8 +346,10 @@ public class VersionNumberStepTest {
             public void evaluate() throws Throwable {
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILDS_ALL_TIME}', versionPrefix: '1.0.', overrideBuildsAllTime: '${NEXT_BUILD_NUMBER}'\n" +
-                        "   echo \"VersionNumber: ${versionNumber}\"\n"
+                        """
+                        def versionNumber = VersionNumber versionNumberString: '${BUILDS_ALL_TIME}', versionPrefix: '1.0.', overrideBuildsAllTime: '${NEXT_BUILD_NUMBER}'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -328,8 +366,10 @@ public class VersionNumberStepTest {
             public void evaluate() throws Throwable {
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILDS_ALL_TIME}', versionPrefix: '1.0.', overrideBuildsAllTime: '12'\n" +
-                        "   echo \"VersionNumber: ${versionNumber}\"\n"
+                        """
+                        def versionNumber = VersionNumber versionNumberString: '${BUILDS_ALL_TIME}', versionPrefix: '1.0.', overrideBuildsAllTime: '12'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -346,8 +386,10 @@ public class VersionNumberStepTest {
             public void evaluate() throws Throwable {
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILDS_TODAY}', versionPrefix: '1.0.', overrideBuildsToday: '12'\n" +
-                        "   echo \"VersionNumber: ${versionNumber}\"\n"
+                        """
+                        def versionNumber = VersionNumber versionNumberString: '${BUILDS_TODAY}', versionPrefix: '1.0.', overrideBuildsToday: '12'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -364,8 +406,10 @@ public class VersionNumberStepTest {
             public void evaluate() throws Throwable {
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILDS_THIS_WEEK}', versionPrefix: '1.0.', overrideBuildsThisWeek: '12'\n" +
-                        "   echo \"VersionNumber: ${versionNumber}\"\n"
+                        """
+                        def versionNumber = VersionNumber versionNumberString: '${BUILDS_THIS_WEEK}', versionPrefix: '1.0.', overrideBuildsThisWeek: '12'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -382,8 +426,10 @@ public class VersionNumberStepTest {
             public void evaluate() throws Throwable {
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILDS_THIS_MONTH}', versionPrefix: '1.0.', overrideBuildsThisMonth: '12'\n" +
-                        "   echo \"VersionNumber: ${versionNumber}\"\n"
+                        """
+                        def versionNumber = VersionNumber versionNumberString: '${BUILDS_THIS_MONTH}', versionPrefix: '1.0.', overrideBuildsThisMonth: '12'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
@@ -400,8 +446,10 @@ public class VersionNumberStepTest {
             public void evaluate() throws Throwable {
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
-                        "def versionNumber = VersionNumber versionNumberString: '${BUILDS_THIS_YEAR}', versionPrefix: '1.0.', overrideBuildsThisYear: '12'\n" +
-                        "   echo \"VersionNumber: ${versionNumber}\"\n"
+                        """
+                        def versionNumber = VersionNumber versionNumberString: '${BUILDS_THIS_YEAR}', versionPrefix: '1.0.', overrideBuildsThisYear: '12'
+                        echo "VersionNumber: ${versionNumber}"
+                        """
                 ));
                 WorkflowRun b1 = p.scheduleBuild2(0).waitForStart();
                 story.j.waitForCompletion(b1);
